@@ -13,7 +13,8 @@ window.onload = function() {
 
     var analyze = function(analyser) {
         var freqs = new Uint8Array(analyser.frequencyBinCount)
-        analyser.getByteFrequencyData(freqs) 
+        analyser.getByteFrequencyData(freqs)
+        analyser.smoothingTimeConstant = 0
 
         return freqs
     }
@@ -27,7 +28,7 @@ window.onload = function() {
             function(stream) {
                 var src = ac.createMediaStreamSource(stream)
                 var analyser = ac.createAnalyser()
-                analyser.fftSize = 256
+                analyser.fftSize = 1024
 
                 src.connect(analyser)
 
@@ -50,7 +51,7 @@ window.onload = function() {
 
     var drawspectrum = function(ctx, analyser) {
         var data = analyze(analyser)
-        requestAnimationFrame(drawspectrum.bind(null, ctx, analyser))
+        requestAnimationFrame(drawspectrum.bind(this, ctx, analyser))
 
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, width, height)
@@ -70,18 +71,22 @@ window.onload = function() {
         var data = analyze(analyser)
         requestAnimationFrame(drawspectro.bind(this, ctx, analyser))
 
+        var dw = 2
+
+        ctx.fillStyle = 'black'
+        ctx.fillRect(0, 0, width, height)
         ctx.drawImage(this.tempCanvas, 0, 0)
         for (var i = data.length - 1; i >= 0; i--) {
             var boxheight = height/data.length
             var y = i*boxheight
             var db = data[i]
-            ctx.fillStyle = "rgb(0,"+db+","+db*1.5+")"
+            ctx.fillStyle = "rgb("+db+","+db+","+db+")"
 
-            ctx.fillRect(width-1, height-y, boxheight, boxheight)
+            ctx.fillRect(width-dw, height-y, dw*2, boxheight+1)
         }
 
-        this.tempCtx.translate(-1, 0)
+        this.tempCtx.translate(-dw, 0)
         this.tempCtx.drawImage(canvas, 0, 0)
-        this.tempCtx.translate(1, 0)
+        this.tempCtx.translate(dw, 0)
     }
 }
