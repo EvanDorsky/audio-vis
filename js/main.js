@@ -11,25 +11,32 @@ window.onload = function() {
         fftSize: 64,
         smoothingTimeConstant: .7,
         canvas: document.getElementById('vis'),
-        config: function(analyser) {
-            this.analyser = analyser
+        config: function(streamSource) {
+            this.analyser = audioCtx.createAnalyser()
+            this.analyser.fftSize = this.fftSize
+            this.analyser.smoothingTimeConstant = this.smoothingTimeConstant
+
+            streamSource.connect(this.analyser)
 
             this.canvas.width = 800
             this.canvas.height = 600
-
             this.canvasCtx = this.canvas.getContext('2d')
+
+            this.draw()
         },
         draw: function() {
-            var data = analyze(this.analyser)
+            var freqs = new Uint8Array(this.analyser.frequencyBinCount)
+            this.analyser.getByteFrequencyData(freqs)
+
             requestAnimationFrame(this.draw.bind(this))
 
             this.canvasCtx.fillStyle = 'black'
             this.canvasCtx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
-            for (var i = data.length - 1; i >= 0; i--) {
-                var barwidth = this.canvas.width/data.length
+            for (var i = freqs.length - 1; i >= 0; i--) {
+                var barwidth = this.canvas.width/freqs.length
                 var x = i*barwidth+1
-                var y = data[i]
+                var y = freqs[i]
                 this.canvasCtx.fillStyle = "rgb("+(y+20)+","+(y+20)+","+(y+20)+")"
 
                 this.canvasCtx.fillRect(x, this.canvas.height, barwidth-2, -y)
@@ -43,8 +50,12 @@ window.onload = function() {
         smoothingTimeConstant: 0,
         canvas: document.getElementById('vis'),
         tempCanvas: document.createElement('canvas'),
-        config: function(analyser) {
-            this.analyser = analyser
+        config: function(streamSource) {
+            this.analyser = audioCtx.createAnalyser()
+            this.analyser.fftSize = this.fftSize
+            this.analyser.smoothingTimeConstant = this.smoothingTimeConstant
+
+            streamSource.connect(this.analyser)
 
             this.canvas.width = 800
             this.canvas.height = 600
@@ -53,12 +64,15 @@ window.onload = function() {
             this.tempCanvas.width = 800
             this.tempCanvas.height = 600
             this.tempCtx = this.tempCanvas.getContext('2d')
+
+            this.draw()
         },
         draw: function() {
             var width = this.canvas.width
             var height = this.canvas.height
 
-            var data = analyze(this.analyser)
+            var freqs = new Uint8Array(this.analyser.frequencyBinCount)
+            this.analyser.getByteFrequencyData(freqs)
             requestAnimationFrame(this.draw.bind(this))
 
             var dw = 2
@@ -66,10 +80,10 @@ window.onload = function() {
             this.canvasCtx.fillStyle = 'black'
             this.canvasCtx.fillRect(0, 0, width, height)
             this.canvasCtx.drawImage(this.tempCanvas, 0, 0)
-            for (var i = data.length - 1; i >= 0; i--) {
-                var boxheight = height/data.length
+            for (var i = freqs.length - 1; i >= 0; i--) {
+                var boxheight = height/freqs.length
                 var y = i*boxheight
-                var db = data[i]
+                var db = freqs[i]
                 this.canvasCtx.fillStyle = "rgb("+db+","+db+","+db+")"
 
                 this.canvasCtx.fillRect(width-dw, height-y, dw*2, boxheight+1)
@@ -81,13 +95,6 @@ window.onload = function() {
         }
     }
 
-    var analyze = function(analyser) {
-        var freqs = new Uint8Array(analyser.frequencyBinCount)
-        analyser.getByteFrequencyData(freqs)
-
-        return freqs
-    }
-
     if (navigator.getUserMedia) {
         navigator.getUserMedia
         (
@@ -97,22 +104,11 @@ window.onload = function() {
             function(stream) {
                 var streamSource = audioCtx.createMediaStreamSource(stream)
 
-                configVis(streamSource, spectrogram)
+                spectrum.config(streamSource)
             },
             function(err) {
                 console.error(err)
             }
         )
-    }
-
-    var configVis = function(streamSource, vis) {
-        var analyser = audioCtx.createAnalyser()
-        analyser.fftSize = vis.fftSize
-        analyser.smoothingTimeConstant = vis.smoothingTimeConstant
-
-        streamSource.connect(analyser)
-
-        vis.config(analyser)
-        vis.draw()
     }
 }
