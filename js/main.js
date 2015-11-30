@@ -31,7 +31,16 @@ window.onload = function() {
 
                 src.connect(analyser)
 
-                drawspectrum(cc, analyser)
+                var tempCanvas = document.createElement('canvas')
+                tempCanvas.width = width
+                tempCanvas.height = height
+                var tempCtx = tempCanvas.getContext('2d')
+
+                var draw = drawspectro.bind({
+                    tempCanvas: tempCanvas,
+                    tempCtx: tempCtx
+                })
+                draw(cc, analyser)
             },
             function(err) {
                 console.error(err)
@@ -55,5 +64,24 @@ window.onload = function() {
 
             ctx.fillRect(x, height, barwidth-2, -y)
         }
+    }
+
+    var drawspectro = function(ctx, analyser) {
+        var data = analyze(analyser)
+        requestAnimationFrame(drawspectro.bind(this, ctx, analyser))
+
+        ctx.drawImage(this.tempCanvas, 0, 0)
+        for (var i = data.length - 1; i >= 0; i--) {
+            var boxheight = height/data.length
+            var y = i*boxheight
+            var db = data[i]
+            ctx.fillStyle = "rgb(0,"+db+","+db*1.5+")"
+
+            ctx.fillRect(width-1, height-y, boxheight, boxheight)
+        }
+
+        this.tempCtx.translate(-1, 0)
+        this.tempCtx.drawImage(canvas, 0, 0)
+        this.tempCtx.translate(1, 0)
     }
 }
