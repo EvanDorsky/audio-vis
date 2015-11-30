@@ -14,13 +14,6 @@ window.onload = function() {
     var analyze = function(analyser) {
         var freqs = new Uint8Array(analyser.frequencyBinCount)
         analyser.getByteFrequencyData(freqs) 
-        var min = analyser.minDecibels
-        var max = analyser.maxDecibels
-
-        // var norms = freqs.map(function(d) {
-        //     var x = d
-        //     return ((-x-min)/(max-min)).toPrecision(4)
-        // })
 
         return freqs
     }
@@ -34,12 +27,11 @@ window.onload = function() {
             function(stream) {
                 var src = ac.createMediaStreamSource(stream)
                 var analyser = ac.createAnalyser()
-                analyser.fftSize = 64
-                analyser.smoothingTimeConstant = .3
+                analyser.fftSize = 256
 
                 src.connect(analyser)
 
-                draw(cc, analyser)
+                drawspectrum(cc, analyser)
             },
             function(err) {
                 console.error(err)
@@ -47,13 +39,9 @@ window.onload = function() {
         )
     }
 
-    var draw = function(ctx, analyser) {
+    var drawspectrum = function(ctx, analyser) {
         var data = analyze(analyser)
-        var drawVisual = requestAnimationFrame(draw.bind(null, ctx, analyser))
-        console.log('analyser.maxDecibels');
-        console.log(analyser.maxDecibels);
-        console.log('analyser.minDecibels');
-        console.log(analyser.minDecibels);
+        requestAnimationFrame(drawspectrum.bind(null, ctx, analyser))
 
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, width, height)
@@ -62,7 +50,7 @@ window.onload = function() {
 
         for (var i = data.length - 1; i >= 0; i--) {
             var barwidth = width/data.length
-            var x = i*barwidth
+            var x = i*barwidth+1
             var y = data[i]
 
             ctx.fillRect(x, height, barwidth-2, -y)
