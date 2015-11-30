@@ -10,10 +10,15 @@ window.onload = function() {
     var audioCtx = new (window.AudioContext || window.webkitAudioContext)()
 
     var jet = colormap({
-        colormap: 'jet',
+        colormap: 'electric',
         nshades: 1024,
         format: 'hex',
     })
+
+    var colormapFromNorm = function(norm, offset) {
+        offset = offset || 0
+        return jet[Math.floor((offset + norm*(1-offset))*jet.length - 1)]
+    }
 
     var spectrum = {
         analyser: null,
@@ -36,21 +41,22 @@ window.onload = function() {
             this.draw()
         },
         draw: function() {
-            var freqs = new Uint8Array(this.analyser.frequencyBinCount)
-            this.analyser.getByteFrequencyData(freqs)
+            var freqBytes = new Uint8Array(this.analyser.frequencyBinCount)
+            this.analyser.getByteFrequencyData(freqBytes)
 
             requestAnimationFrame(this.draw.bind(this))
 
             this.canvasCtx.fillStyle = 'black'
             this.canvasCtx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
-            var barwidth = this.canvas.width/freqs.length
-            for (var i = freqs.length - 1; i >= 0; i--) {
-                var x = i*barwidth+1
-                var y = freqs[i]
-                this.canvasCtx.fillStyle = jet[y*4]
+            this.canvasCtx.font = "16px Helvetica"
 
-                this.canvasCtx.fillRect(x, this.canvas.height, barwidth-2, -y)
+            var barwidth = this.canvas.width/freqBytes.length
+            for (var i = freqBytes.length - 1; i >= 0; i--) {
+                var x = i*barwidth+1
+                var y = freqBytes[i]/255.0
+                this.canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
+                this.canvasCtx.fillRect(x, this.canvas.height, barwidth-2, -y*this.canvas.height)
             }
         }
     }
@@ -65,6 +71,7 @@ window.onload = function() {
             this.analyser = audioCtx.createAnalyser()
             this.analyser.fftSize = this.fftSize
             this.analyser.smoothingTimeConstant = this.smoothingTimeConstant
+            this.minDecibels = -140
 
             streamSource.connect(this.analyser)
 
@@ -84,8 +91,8 @@ window.onload = function() {
             var width = this.canvas.width
             var height = this.canvas.height
 
-            var freqs = new Uint8Array(this.analyser.frequencyBinCount)
-            this.analyser.getByteFrequencyData(freqs)
+            var freqBytes = new Uint8Array(this.analyser.frequencyBinCount)
+            this.analyser.getByteFrequencyData(freqBytes)
             requestAnimationFrame(this.draw.bind(this))
 
             var dw = 2
@@ -93,11 +100,11 @@ window.onload = function() {
             this.canvasCtx.fillStyle = 'black'
             this.canvasCtx.fillRect(0, 0, width, height)
             this.canvasCtx.drawImage(this.tempCanvas, 0, 0)
-            var boxheight = height/freqs.length
-            for (var i = freqs.length - 1; i >= 0; i--) {
+            var boxheight = height/freqBytes.length
+            for (var i = freqBytes.length - 1; i >= 0; i--) {
                 var y = i*boxheight
-                var db = freqs[i]
-                this.canvasCtx.fillStyle = jet[db*4]
+                var norm = freqBytes[i]/255.0
+                this.canvasCtx.fillStyle = colormapFromNorm(norm)
 
                 this.canvasCtx.fillRect(width-dw, height-y, dw*2, boxheight+1)
             }
