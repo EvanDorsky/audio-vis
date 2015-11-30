@@ -47,7 +47,6 @@ window.onload = function() {
         }
         vis.draw = function() {
             vis.analyser.getByteFrequencyData(vis.byteArray)
-
             requestAnimationFrame(vis.draw)
 
             canvasCtx.fillStyle = 'black'
@@ -59,6 +58,50 @@ window.onload = function() {
                 var y = vis.byteArray[i]/255.0
                 canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
                 canvasCtx.fillRect(x, canvas.height, barwidth-2, -y*canvas.height)
+            }
+        }
+
+        return vis
+    }
+
+    var centerspectrum = function() {
+        var vis = this
+
+        var fftSize = 64
+        var smoothingTimeConstant = .7
+
+        var canvas = document.createElement('canvas')
+        var canvasCtx = canvas.getContext('2d')
+
+        vis.config = function(streamSource) {
+            vis.analyser = audioCtx.createAnalyser()
+            vis.analyser.fftSize = fftSize
+            vis.analyser.smoothingTimeConstant = smoothingTimeConstant
+
+            streamSource.connect(vis.analyser)
+
+            canvas.width = 800
+            canvas.height = 600
+
+            document.body.appendChild(canvas)
+
+            vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
+
+            vis.draw()
+        }
+        vis.draw = function() {
+            vis.analyser.getByteFrequencyData(vis.byteArray)
+            requestAnimationFrame(vis.draw)
+
+            canvasCtx.fillStyle = 'black'
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height)
+
+            var barwidth = canvas.width/vis.byteArray.length
+            for (var i = vis.byteArray.length - 1; i >= 0; i--) {
+                var x = i*barwidth+1
+                var y = vis.byteArray[i]/255.0
+                canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
+                canvasCtx.fillRect(x, (1-y)*canvas.height/2, barwidth-2, y*canvas.height)
             }
         }
 
@@ -127,7 +170,7 @@ window.onload = function() {
             function(stream) {
                 var streamSource = audioCtx.createMediaStreamSource(stream)
 
-                var spec = new spectrum()
+                var spec = new centerspectrum()
                 spec.config(streamSource)
 
                 var tro = new spectrogram()
