@@ -1,85 +1,73 @@
-navigator.getUserMedia = (navigator.getUserMedia ||
-                          navigator.webkitGetUserMedia ||
-                          navigator.mozGetUserMedia ||
-                          navigator.msGetUserMedia)
+window.onload = function() {    
+    navigator.getUserMedia = (navigator.getUserMedia ||
+                              navigator.webkitGetUserMedia ||
+                              navigator.mozGetUserMedia ||
+                              navigator.msGetUserMedia)
 
-var ac = new (window.AudioContext || window.webkitAudioContext)()
+    var ac = new (window.AudioContext || window.webkitAudioContext)()
 
-if (navigator.getUserMedia) {
-   console.log('getUserMedia supported.');
-   navigator.getUserMedia (
-      // constraints: audio and video for this app
-      {
-         audio: true,
-         video: true
-      },
+    var analyze = function() {
+        var freqs = new Uint8Array(this.frequencyBinCount)
+        this.getByteFrequencyData(freqs) 
+        var min = this.minDecibels
+        var max = this.maxDecibels
 
-      // Success callback
-      function(stream) {
-         video.src = (window.URL && window.URL.createObjectURL(stream)) || stream;
-         video.onloadedmetadata = function(e) {
-            video.play();
-            video.muted = 'true';
-         };
-
-         // Create a MediaStreamAudioSourceNode
-         // Feed the HTMLMediaElement into it
-         var source = audioCtx.createMediaStreamSource(stream);
-
-          // Create a biquadfilter
-          var biquadFilter = audioCtx.createBiquadFilter();
-          biquadFilter.type = "lowshelf";
-          biquadFilter.frequency.value = 1000;
-          biquadFilter.gain.value = range.value;
-
-          // connect the AudioBufferSourceNode to the gainNode
-          // and the gainNode to the destination, so we can play the
-          // music and adjust the volume using the mouse cursor
-          source.connect(biquadFilter);
-          biquadFilter.connect(audioCtx.destination);
-
-          // Get new mouse pointer coordinates when mouse is moved
-          // then set new gain value
-
-          range.oninput = function() {
-              biquadFilter.gain.value = range.value;
-          }
-
-          function calcFrequencyResponse() {
-            biquadFilter.getFrequencyResponse(myFrequencyArray,magResponseOutput,phaseResponseOutput);
-
-            for(i = 0; i <= myFrequencyArray.length-1;i++){
-              var listItem = document.createElement('li');
-              listItem.innerHTML = '' + myFrequencyArray[i] + 'Hz: Magnitude ' + magResponseOutput[i] + ', Phase ' + phaseResponseOutput[i] + ' radians.';
-              freqResponseOutput.appendChild(listItem);
-            }
-          }
-
-          calcFrequencyResponse();
-
-      },
-
-      // Error callback
-      function(err) {
-         console.log('The following gUM error occured: ' + err);
-      }
-   );
-} else {
-   console.log('getUserMedia not supported on your browser!');
-}
-
-if (navigator.getUserMedia) {
-    navigator.getUserMedia(
-        {
-            audio: true,
-            video: false
-        },
-
-        function(stream) {
-            alert('bream')
-            
-            var src = ac.createMediaStreamSource(stream)
-
-            src.connect(ac.destination)
+        var norms = freqs.map(function(x) {
+            return (-x-min)/(max-min)
         })
+
+        window.analyserData = freqs
+    }
+
+    if (navigator.getUserMedia) {
+        navigator.getUserMedia
+        (
+            {   
+                audio: true
+            },
+            function(stream) {
+                var src = ac.createMediaStreamSource(stream)
+                var analyser = ac.createAnalyser()
+                analyser.fftSize = 512
+
+                src.connect(analyser)
+                analyser.connect(ac.destination)
+
+                setInterval(analyze.bind(analyser), 50)
+            },
+            function(err) {
+                console.error(err)
+            }
+        )
+    }
+
+    var canvas = document.getElementById('vis')
+    var width = canvas.width
+    var height = canvas.height
+    var cc = canvas.getContext('2d')
+
+    var draw = function(ctx) {
+        var data = window.analyserData
+        var drawVisual = requestAnimationFrame(draw.bind(null, ctx))
+
+        ctx.fillStyle = 'black'
+        ctx.fillRect(0, 0, width, height)
+
+        ctx.lineWidth = 2
+        ctx.strokeStyle = 'white'
+
+        ctx.beginPath()
+
+        ctx.moveTo(20*(data.length-1), data[data.length-1])
+        for (var i = data.length - 2; i >= 0; i--) {
+            var x = i*20
+
+            var y = data[i]
+
+            ctx.lineTo(x, y)
+            ctx.stroke()
+        }
+    }
+
+    draw(cc)
 }
