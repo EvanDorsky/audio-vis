@@ -10,7 +10,7 @@ window.onload = function() {
         analyser: null,
         fftSize: 64,
         smoothingTimeConstant: .7,
-        canvas: document.getElementById('vis'),
+        canvas: document.createElement('canvas'),
         config: function(streamSource) {
             this.analyser = audioCtx.createAnalyser()
             this.analyser.fftSize = this.fftSize
@@ -21,6 +21,9 @@ window.onload = function() {
             this.canvas.width = 800
             this.canvas.height = 600
             this.canvasCtx = this.canvas.getContext('2d')
+
+            var container = document.getElementById('container')
+            container.appendChild(this.canvas)
 
             this.draw()
         },
@@ -48,7 +51,7 @@ window.onload = function() {
         analyser: null,
         fftSize: 2048,
         smoothingTimeConstant: 0,
-        canvas: document.getElementById('vis'),
+        canvas: document.createElement('canvas'),
         tempCanvas: document.createElement('canvas'),
         config: function(streamSource) {
             this.analyser = audioCtx.createAnalyser()
@@ -64,6 +67,9 @@ window.onload = function() {
             this.tempCanvas.width = 800
             this.tempCanvas.height = 600
             this.tempCtx = this.tempCanvas.getContext('2d')
+
+            var container = document.getElementById('container')
+            container.appendChild(this.canvas)
 
             this.draw()
         },
@@ -105,6 +111,7 @@ window.onload = function() {
                 var streamSource = audioCtx.createMediaStreamSource(stream)
 
                 spectrum.config(streamSource)
+                spectrogram.config(streamSource)
             },
             function(err) {
                 console.error(err)
