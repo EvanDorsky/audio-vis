@@ -6,17 +6,23 @@ window.onload = function() {
 
     var ac = new (window.AudioContext || window.webkitAudioContext)()
 
-    var analyze = function() {
-        var freqs = new Uint8Array(this.frequencyBinCount)
-        this.getByteFrequencyData(freqs) 
-        var min = this.minDecibels
-        var max = this.maxDecibels
+    var canvas = document.getElementById('vis')
+    var width = canvas.width
+    var height = canvas.height
+    var cc = canvas.getContext('2d')
 
-        var norms = freqs.map(function(x) {
-            return (-x-min)/(max-min)
-        })
+    var analyze = function(analyser) {
+        var freqs = new Uint8Array(analyser.frequencyBinCount)
+        analyser.getByteFrequencyData(freqs) 
+        var min = analyser.minDecibels
+        var max = analyser.maxDecibels
 
-        window.analyserData = freqs
+        // var norms = freqs.map(function(d) {
+        //     var x = d
+        //     return ((-x-min)/(max-min)).toPrecision(4)
+        // })
+
+        return freqs
     }
 
     if (navigator.getUserMedia) {
@@ -28,12 +34,12 @@ window.onload = function() {
             function(stream) {
                 var src = ac.createMediaStreamSource(stream)
                 var analyser = ac.createAnalyser()
-                analyser.fftSize = 512
+                analyser.fftSize = 64
+                analyser.smoothingTimeConstant = .3
 
                 src.connect(analyser)
-                analyser.connect(ac.destination)
 
-                setInterval(analyze.bind(analyser), 50)
+                draw(cc, analyser)
             },
             function(err) {
                 console.error(err)
@@ -41,33 +47,25 @@ window.onload = function() {
         )
     }
 
-    var canvas = document.getElementById('vis')
-    var width = canvas.width
-    var height = canvas.height
-    var cc = canvas.getContext('2d')
-
-    var draw = function(ctx) {
-        var data = window.analyserData
-        var drawVisual = requestAnimationFrame(draw.bind(null, ctx))
+    var draw = function(ctx, analyser) {
+        var data = analyze(analyser)
+        var drawVisual = requestAnimationFrame(draw.bind(null, ctx, analyser))
+        console.log('analyser.maxDecibels');
+        console.log(analyser.maxDecibels);
+        console.log('analyser.minDecibels');
+        console.log(analyser.minDecibels);
 
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, width, height)
 
-        ctx.lineWidth = 2
-        ctx.strokeStyle = 'white'
+        ctx.fillStyle = 'white'
 
-        ctx.beginPath()
-
-        ctx.moveTo(20*(data.length-1), data[data.length-1])
-        for (var i = data.length - 2; i >= 0; i--) {
-            var x = i*20
-
+        for (var i = data.length - 1; i >= 0; i--) {
+            var barwidth = width/data.length
+            var x = i*barwidth
             var y = data[i]
 
-            ctx.lineTo(x, y)
-            ctx.stroke()
+            ctx.fillRect(x, height, barwidth-2, -y)
         }
     }
-
-    draw(cc)
 }
