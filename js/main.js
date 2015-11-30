@@ -14,7 +14,7 @@ window.onload = function() {
     var analyze = function(analyser) {
         var freqs = new Uint8Array(analyser.frequencyBinCount)
         analyser.getByteFrequencyData(freqs)
-        analyser.smoothingTimeConstant = 0
+        analyser.smoothingTimeConstant = 0.7
 
         return freqs
     }
@@ -28,7 +28,7 @@ window.onload = function() {
             function(stream) {
                 var src = ac.createMediaStreamSource(stream)
                 var analyser = ac.createAnalyser()
-                analyser.fftSize = 1024
+                analyser.fftSize = 64
 
                 src.connect(analyser)
 
@@ -37,7 +37,7 @@ window.onload = function() {
                 tempCanvas.height = height
                 var tempCtx = tempCanvas.getContext('2d')
 
-                var draw = drawspectro.bind({
+                var draw = drawspectrum.bind({
                     tempCanvas: tempCanvas,
                     tempCtx: tempCtx
                 })
@@ -56,12 +56,12 @@ window.onload = function() {
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, width, height)
 
-        ctx.fillStyle = 'white'
 
         for (var i = data.length - 1; i >= 0; i--) {
             var barwidth = width/data.length
             var x = i*barwidth+1
             var y = data[i]
+            ctx.fillStyle = "rgb("+(y+20)+","+(y+20)+","+(y+20)+")"
 
             ctx.fillRect(x, height, barwidth-2, -y)
         }
