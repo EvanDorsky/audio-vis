@@ -83,7 +83,7 @@ while [[ true ]] ; do
     # Only take action if there are new changes in this monitor cycle.
     if [[ "${UPDATES}" != "${LAST_UPDATES}" ]] ; then
  
-         make
+         make all
  
     fi
   fi

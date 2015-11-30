@@ -1,3 +1,5 @@
+var colormap = require('colormap')
+
 window.onload = function() {    
     navigator.getUserMedia = (navigator.getUserMedia ||
                               navigator.webkitGetUserMedia ||
@@ -5,6 +7,12 @@ window.onload = function() {
                               navigator.msGetUserMedia)
 
     var audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+
+    var jet = colormap({
+        colormap: 'jet',
+        nshades: 1024,
+        format: 'hex',
+    })
 
     var spectrum = {
         analyser: null,
@@ -22,8 +30,7 @@ window.onload = function() {
             this.canvas.height = 600
             this.canvasCtx = this.canvas.getContext('2d')
 
-            var container = document.getElementById('container')
-            container.appendChild(this.canvas)
+            document.body.appendChild(this.canvas)
 
             this.draw()
         },
@@ -36,11 +43,11 @@ window.onload = function() {
             this.canvasCtx.fillStyle = 'black'
             this.canvasCtx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
+            var barwidth = this.canvas.width/freqs.length
             for (var i = freqs.length - 1; i >= 0; i--) {
-                var barwidth = this.canvas.width/freqs.length
                 var x = i*barwidth+1
                 var y = freqs[i]
-                this.canvasCtx.fillStyle = "rgb("+(y+20)+","+(y+20)+","+(y+20)+")"
+                this.canvasCtx.fillStyle = jet[y*4]
 
                 this.canvasCtx.fillRect(x, this.canvas.height, barwidth-2, -y)
             }
@@ -68,8 +75,7 @@ window.onload = function() {
             this.tempCanvas.height = 600
             this.tempCtx = this.tempCanvas.getContext('2d')
 
-            var container = document.getElementById('container')
-            container.appendChild(this.canvas)
+            document.body.appendChild(this.canvas)
 
             this.draw()
         },
@@ -86,11 +92,11 @@ window.onload = function() {
             this.canvasCtx.fillStyle = 'black'
             this.canvasCtx.fillRect(0, 0, width, height)
             this.canvasCtx.drawImage(this.tempCanvas, 0, 0)
+            var boxheight = height/freqs.length
             for (var i = freqs.length - 1; i >= 0; i--) {
-                var boxheight = height/freqs.length
                 var y = i*boxheight
                 var db = freqs[i]
-                this.canvasCtx.fillStyle = "rgb("+db+","+db+","+db+")"
+                this.canvasCtx.fillStyle = jet[db*4]
 
                 this.canvasCtx.fillRect(width-dw, height-y, dw*2, boxheight+1)
             }
@@ -102,11 +108,8 @@ window.onload = function() {
     }
 
     if (navigator.getUserMedia) {
-        navigator.getUserMedia
-        (
-            {   
-                audio: true
-            },
+        navigator.getUserMedia(
+            { audio: true },
             function(stream) {
                 var streamSource = audioCtx.createMediaStreamSource(stream)
 

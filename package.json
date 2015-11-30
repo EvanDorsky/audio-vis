@@ -4,11 +4,14 @@
   "description": "",
   "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+	"build": "browserify js/main.js > js/bundle.js"
   },
   "author": "Evan Dorsky",
   "license": "ISC",
   "dependencies": {
+    "browserify": "^12.0.1",
+    "colormap": "^2.0.1",
     "lazy.js": "^0.4.2"
   }
 }
