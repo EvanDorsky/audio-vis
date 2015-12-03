@@ -22,41 +22,44 @@ window.onload = function() {
     var spectrum = function() {
         var vis = this
 
-        var fftSize = 64
-        var smoothingTimeConstant = .7
-
-        var canvas = document.createElement('canvas')
-        var canvasCtx = canvas.getContext('2d')
+        vis.p = {}
+        vis.p.fftSize = 64
+        vis.p.smoothingTimeConstant = .7
+        vis.p.canvas = document.createElement('canvas')
+        vis.p.canvasCtx = vis.p.canvas.getContext('2d')
 
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
-            vis.analyser.fftSize = fftSize
-            vis.analyser.smoothingTimeConstant = smoothingTimeConstant
+            vis.analyser.fftSize = vis.p.fftSize
+            vis.analyser.smoothingTimeConstant = vis.p.smoothingTimeConstant
 
             streamSource.connect(vis.analyser)
 
-            canvas.width = 800
-            canvas.height = 600
+            vis.p.canvas.width = 800
+            vis.p.canvas.height = 600
 
-            document.body.appendChild(canvas)
+            document.body.appendChild(vis.p.canvas)
 
             vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
+
+            vis.render()
+        }
+        vis.render = function() {
+            vis.analyser.getByteFrequencyData(vis.byteArray)
+            requestAnimationFrame(vis.render)
 
             vis.draw()
         }
         vis.draw = function() {
-            vis.analyser.getByteFrequencyData(vis.byteArray)
-            requestAnimationFrame(vis.draw)
+            vis.p.canvasCtx.fillStyle = 'black'
+            vis.p.canvasCtx.fillRect(0, 0, vis.p.canvas.width, vis.p.canvas.height)
 
-            canvasCtx.fillStyle = 'black'
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height)
-
-            var barwidth = canvas.width/vis.byteArray.length
+            var barwidth = vis.p.canvas.width/vis.byteArray.length
             for (var i = vis.byteArray.length - 1; i >= 0; i--) {
                 var x = i*barwidth+1
                 var y = vis.byteArray[i]/255.0
-                canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
-                canvasCtx.fillRect(x, canvas.height, barwidth-2, -y*canvas.height)
+                vis.p.canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
+                vis.p.canvasCtx.fillRect(x, vis.p.canvas.height, barwidth-2, -y*vis.p.canvas.height)
             }
         }
 
@@ -64,43 +67,18 @@ window.onload = function() {
     }
 
     var centerspectrum = function() {
-        var vis = this
+        var vis = new spectrum()
 
-        var fftSize = 64
-        var smoothingTimeConstant = .7
-
-        var canvas = document.createElement('canvas')
-        var canvasCtx = canvas.getContext('2d')
-
-        vis.config = function(streamSource) {
-            vis.analyser = audioCtx.createAnalyser()
-            vis.analyser.fftSize = fftSize
-            vis.analyser.smoothingTimeConstant = smoothingTimeConstant
-
-            streamSource.connect(vis.analyser)
-
-            canvas.width = 800
-            canvas.height = 600
-
-            document.body.appendChild(canvas)
-
-            vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
-
-            vis.draw()
-        }
         vis.draw = function() {
-            vis.analyser.getByteFrequencyData(vis.byteArray)
-            requestAnimationFrame(vis.draw)
+            vis.p.canvasCtx.fillStyle = 'black'
+            vis.p.canvasCtx.fillRect(0, 0, vis.p.canvas.width, vis.p.canvas.height)
 
-            canvasCtx.fillStyle = 'black'
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height)
-
-            var barwidth = canvas.width/vis.byteArray.length
+            var barwidth = vis.p.canvas.width/vis.byteArray.length
             for (var i = vis.byteArray.length - 1; i >= 0; i--) {
                 var x = i*barwidth+1
                 var y = vis.byteArray[i]/255.0
-                canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
-                canvasCtx.fillRect(x, (1-y)*canvas.height/2, barwidth-2, y*canvas.height)
+                vis.p.canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
+                vis.p.canvasCtx.fillRect(x, (1-y)*vis.p.canvas.height/2, barwidth-2, y*vis.p.canvas.height)
             }
         }
 
@@ -110,54 +88,55 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = this
 
-        var fftSize = 2048
-        var smoothingTimeConstant = 0
-        var canvas = document.createElement('canvas')
-        var canvasCtx = canvas.getContext('2d')
-        var tempCanvas = document.createElement('canvas')
-        var tempCtx = tempCanvas.getContext('2d')
+        vis.p = {}
+        vis.p.fftSize = 2048
+        vis.p.smoothingTimeConstant = 0
+        vis.p.canvas = document.createElement('canvas')
+        vis.p.canvasCtx = vis.p.canvas.getContext('2d')
+        vis.p.tempCanvas = document.createElement('canvas')
+        vis.p.tempCtx = vis.p.tempCanvas.getContext('2d')
 
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
-            vis.analyser.fftSize = fftSize
-            vis.analyser.smoothingTimeConstant = smoothingTimeConstant
+            vis.analyser.fftSize = vis.p.fftSize
+            vis.analyser.smoothingTimeConstant = vis.p.smoothingTimeConstant
             vis.analyser.minDecibels = -140
 
             streamSource.connect(vis.analyser)
 
-            canvas.width = 800
-            canvas.height = 600
+            vis.p.canvas.width = 800
+            vis.p.canvas.height = 600
 
-            tempCanvas.width = 800
-            tempCanvas.height = 600
+            vis.p.tempCanvas.width = 800
+            vis.p.tempCanvas.height = 600
 
-            document.body.appendChild(canvas)
+            document.body.appendChild(vis.p.canvas)
 
             vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
 
-            vis.draw()
+            vis.render()
         }
-        vis.draw = function() {
+        vis.render = function() {
             vis.analyser.getByteFrequencyData(vis.byteArray)
-            requestAnimationFrame(vis.draw)
+            requestAnimationFrame(vis.render)
 
             var dw = 2
 
-            canvasCtx.fillStyle = 'black'
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height)
-            canvasCtx.drawImage(tempCanvas, 0, 0)
-            var boxheight = canvas.height/vis.byteArray.length
+            vis.p.canvasCtx.fillStyle = 'black'
+            vis.p.canvasCtx.fillRect(0, 0, vis.p.canvas.width, vis.p.canvas.height)
+            vis.p.canvasCtx.drawImage(vis.p.tempCanvas, 0, 0)
+            var boxheight = vis.p.canvas.height/vis.byteArray.length
             for (var i = vis.byteArray.length - 1; i >= 0; i--) {
                 var y = i*boxheight
                 var norm = vis.byteArray[i]/255.0
-                canvasCtx.fillStyle = colormapFromNorm(norm)
+                vis.p.canvasCtx.fillStyle = colormapFromNorm(norm)
 
-                canvasCtx.fillRect(canvas.width-dw, canvas.height-y, dw*2, boxheight+1)
+                vis.p.canvasCtx.fillRect(vis.p.canvas.width-dw, vis.p.canvas.height-y, dw*2, boxheight+1)
             }
 
-            tempCtx.translate(-dw, 0)
-            tempCtx.drawImage(canvas, 0, 0)
-            tempCtx.translate(dw, 0)
+            vis.p.tempCtx.translate(-dw, 0)
+            vis.p.tempCtx.drawImage(vis.p.canvas, 0, 0)
+            vis.p.tempCtx.translate(dw, 0)
         }
 
         return vis
