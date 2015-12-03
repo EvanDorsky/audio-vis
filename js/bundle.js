@@ -20,12 +20,10 @@ window.onload = function() {
         return jet[Math.floor((offset + norm*(1-offset))*jet.length - 1)]
     }
 
-    var spectrum = function() {
+    var visualizer = function() {
         var vis = this
 
         vis.p = {}
-        vis.p.fftSize = 64
-        vis.p.smoothingTimeConstant = .7
         vis.p.canvas = document.createElement('canvas')
         vis.p.canvasCtx = vis.p.canvas.getContext('2d')
 
@@ -44,6 +42,8 @@ window.onload = function() {
             vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
 
             vis.render()
+
+            return vis
         }
         vis.render = function() {
             vis.analyser.getByteFrequencyData(vis.byteArray)
@@ -51,6 +51,25 @@ window.onload = function() {
 
             vis.draw()
         }
+
+        // generate getters/setters
+        Object.keys(vis.p).forEach(function(key) {
+            vis[key] = function(_) {
+                if (!arguments.length) return p[key]
+                p[key] = _
+                return vis
+            }
+        })
+
+        return vis
+    }
+
+    var spectrum = function() {
+        var vis = new visualizer()
+
+        vis.p.fftSize = 64
+        vis.p.smoothingTimeConstant = .7
+
         vis.draw = function() {
             vis.p.canvasCtx.fillStyle = 'black'
             vis.p.canvasCtx.fillRect(0, 0, vis.p.canvas.width, vis.p.canvas.height)
@@ -87,13 +106,10 @@ window.onload = function() {
     }
 
     var spectrogram = function() {
-        var vis = this
+        var vis = new visualizer()
 
-        vis.p = {}
         vis.p.fftSize = 2048
         vis.p.smoothingTimeConstant = 0
-        vis.p.canvas = document.createElement('canvas')
-        vis.p.canvasCtx = vis.p.canvas.getContext('2d')
         vis.p.tempCanvas = document.createElement('canvas')
         vis.p.tempCtx = vis.p.tempCanvas.getContext('2d')
 
@@ -116,11 +132,10 @@ window.onload = function() {
             vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
 
             vis.render()
-        }
-        vis.render = function() {
-            vis.analyser.getByteFrequencyData(vis.byteArray)
-            requestAnimationFrame(vis.render)
 
+            return vis
+        }
+        vis.draw = function() {
             var dw = 2
 
             vis.p.canvasCtx.fillStyle = 'black'
