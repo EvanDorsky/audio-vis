@@ -161,7 +161,8 @@ window.onload = function() {
     var source = audioCtx.createBufferSource()
     var req = new XMLHttpRequest()
 
-    req.open('GET', 'http://www.noiseaddicts.com/samples_1w72b820/273.mp3', true)
+    req.open('GET', 'audio/gannet.mp3', true)
+    req.setRequestHeader('Content-Type', 'audio/mpeg')
     req.responseType = 'arraybuffer'
 
     req.onerror = function(err) {
@@ -170,6 +171,8 @@ window.onload = function() {
 
     req.onload = function() {
         var audio = req.response
+        console.log('audio');
+        console.log(audio);
 
         audioCtx.decodeAudioData(audio, function(buffer) {
             source.buffer = buffer
@@ -181,21 +184,21 @@ window.onload = function() {
 
     req.send()
 
-    if (navigator.getUserMedia) {
-        navigator.getUserMedia(
-            { audio: true },
-            function(stream) {
-                var streamSource = audioCtx.createMediaStreamSource(stream)
+    // if (navigator.getUserMedia) {
+    //     navigator.getUserMedia(
+    //         { audio: true },
+    //         function(stream) {
+    //             var streamSource = audioCtx.createMediaStreamSource(stream)
 
-                var spec = new centerspectrum()
-                spec.config(streamSource)
+    //             var spec = new centerspectrum()
+    //             spec.config(streamSource)
 
-                var tro = new spectrogram()
-                tro.config(streamSource)
-            },
-            function(err) {
-                console.error(err)
-            }
-        )
-    }
+    //             var tro = new spectrogram()
+    //             tro.config(streamSource)
+    //         },
+    //         function(err) {
+    //             console.error(err)
+    //         }
+    //     )
+    // }
 }
