@@ -158,6 +158,29 @@ window.onload = function() {
         return vis
     }
 
+    var source = audioCtx.createBufferSource()
+    var req = new XMLHttpRequest()
+
+    req.open('GET', 'http://www.noiseaddicts.com/samples_1w72b820/273.mp3', true)
+    req.responseType = 'arraybuffer'
+
+    req.onerror = function() {
+        alert('boge')
+    }
+
+    req.onload = function() {
+        var audio = req.response
+
+        audioCtx.decodeAudioData(audio, function(buffer) {
+            source.buffer = buffer
+            
+            source.connect(audioCtx.destination)
+            source.loop = true
+        })
+    }
+
+    req.send()
+
     if (navigator.getUserMedia) {
         navigator.getUserMedia(
             { audio: true },
