@@ -165,8 +165,8 @@ window.onload = function() {
     req.open('GET', 'http://www.noiseaddicts.com/samples_1w72b820/273.mp3', true)
     req.responseType = 'arraybuffer'
 
-    req.onerror = function() {
-        alert('boge')
+    req.onerror = function(err) {
+        console.error(err)
     }
 
     req.onload = function() {
@@ -174,7 +174,7 @@ window.onload = function() {
 
         audioCtx.decodeAudioData(audio, function(buffer) {
             source.buffer = buffer
-            
+
             source.connect(audioCtx.destination)
             source.loop = true
         })
