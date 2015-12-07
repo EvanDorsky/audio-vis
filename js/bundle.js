@@ -51,15 +51,16 @@ window.onload = function() {
 
             vis.draw()
         }
+        vis.genGetSet = function() {
+            Object.keys(vis.p).forEach(function(key) {
+                vis[key] = function(_) {
+                    if (!arguments.length) return p[key]
 
-        // generate getters/setters
-        Object.keys(vis.p).forEach(function(key) {
-            vis[key] = function(_) {
-                if (!arguments.length) return p[key]
-                p[key] = _
-                return vis
-            }
-        })
+                    p[key] = _
+                    return vis
+                }
+            })
+        }
 
         return vis
     }
