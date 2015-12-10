@@ -46,7 +46,7 @@ window.onload = function() {
         }
         vis.render = function() {
             vis.analyser.getByteFrequencyData(vis.byteArray)
-            requestAnimationFrame(vis.render)
+            // requestAnimationFrame(vis.render)
 
             vis.draw()
         }
@@ -112,6 +112,7 @@ window.onload = function() {
         vis.p.smoothingTimeConstant = 0
         vis.p.tempCanvas = document.createElement('canvas')
         vis.p.tempCtx = vis.p.tempCanvas.getContext('2d')
+        vis.p.logScale = true
 
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
@@ -142,8 +143,16 @@ window.onload = function() {
             vis.p.canvasCtx.fillRect(0, 0, vis.p.canvas.width, vis.p.canvas.height)
             vis.p.canvasCtx.drawImage(vis.p.tempCanvas, 0, 0)
             var boxheight = vis.p.canvas.height/vis.byteArray.length
+            var binwidth = audioCtx.sampleRate/vis.p.fftSize
+            var y = 0
             for (var i = vis.byteArray.length - 1; i >= 0; i--) {
-                var y = i*boxheight
+                if (vis.p.logScale) {
+                    boxheight = Math.log10(i/(i-1))*50
+                    y = Math.log10(i*binwidth)*50
+                }
+                else {
+                    y = i*boxheight
+                }
                 var norm = vis.byteArray[i]/255.0
                 vis.p.canvasCtx.fillStyle = colormapFromNorm(norm)
 
