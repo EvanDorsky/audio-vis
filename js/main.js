@@ -1,5 +1,4 @@
 var colormap = require('colormap')
-var _ = require('lazy.js')
 
 // just for display, tonal accuracy is "unimportant"
 var musicMap = function() {
@@ -8,7 +7,7 @@ var musicMap = function() {
     
     // 12 semitones 
     var factor = Math.pow(2, 1/12)
-    var notes = {}
+    var notes = []
 
     // turns out this is accurate enough for graphics
     var note = A1
@@ -27,14 +26,20 @@ var musicMap = function() {
         'G#',
     ]
     for (var i = 0; i < 12*9; i++) {
-        notes[octave[i%12]+Math.round(1+i/12)] = note
+        notes.push({
+            name: octave[i%12]+(1+i/12 | 0),
+            Hz: note
+        })
         note *= factor
-    }// lol this is so naive
+    }
 
     return notes
 }
 
 var notes = new musicMap()
+var Fs = notes.filter(function(x) {
+    return /A\d/.test(x.name)
+})
 
 window.onload = function() {    
     navigator.getUserMedia = (navigator.getUserMedia ||
@@ -82,7 +87,7 @@ window.onload = function() {
         }
         vis.render = function() {
             vis.analyser.getByteFrequencyData(vis.byteArray)
-            // requestAnimationFrame(vis.render)
+            requestAnimationFrame(vis.render)
 
             vis.draw()
         }
@@ -216,9 +221,9 @@ window.onload = function() {
             if (vis.p.logScale) {
                 vis.p.canvasCtx.fillStyle = 'white'
 
-                for (var note in notes) {
-                    var freq = notes[note]
-                    vis.p.canvasCtx.fillText(note, vis.p.canvas.width-dw, vis.p.canvas.height-vis.yFromFreq(freq))
+                for (var j in Fs) {
+                    var note = Fs[j]
+                    vis.p.canvasCtx.fillText(note.name, vis.p.canvas.width-dw, vis.p.canvas.height-vis.yFromFreq(note.Hz))
                 }
             }
         }
