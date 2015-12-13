@@ -1,5 +1,4 @@
 var colormap = require('colormap')
-var _ = require('lazy.js')
 
 // just for display, tonal accuracy is "unimportant"
 var musicMap = function() {
@@ -8,14 +7,29 @@ var musicMap = function() {
     
     // 12 semitones 
     var factor = Math.pow(2, 1/12)
-    map.notes = [A1]
+    var notes = {}
 
     // turns out this is accurate enough for graphics
     var note = A1
+    var octave = [
+        'A',
+        'A#',
+        'B',
+        'C',
+        'C#',
+        'D',
+        'D#',
+        'E',
+        'F',
+        'F#',
+        'G',
+        'G#',
+    ]
     for (var i = 0; i < 12*9; i++) {
+        notes[octave[i%12]+Math.round(1+i/12)] = note
         note *= factor
-        map.notes.push(note)
-    }
+    }// lol this is so naive
+    map.notes = notes
 
     return map
 }
@@ -68,7 +82,7 @@ window.onload = function() {
         }
         vis.render = function() {
             vis.analyser.getByteFrequencyData(vis.byteArray)
-            requestAnimationFrame(vis.render)
+            // requestAnimationFrame(vis.render)
 
             vis.draw()
         }
