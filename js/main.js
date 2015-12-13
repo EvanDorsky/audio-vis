@@ -1,4 +1,5 @@
 var colormap = require('colormap')
+var _ = require('lazy.js')
 
 // just for display, tonal accuracy is "unimportant"
 var musicMap = function() {
@@ -29,12 +30,11 @@ var musicMap = function() {
         notes[octave[i%12]+Math.round(1+i/12)] = note
         note *= factor
     }// lol this is so naive
-    map.notes = notes
 
-    return map
+    return notes
 }
 
-musicMap()
+var notes = new musicMap()
 
 window.onload = function() {    
     navigator.getUserMedia = (navigator.getUserMedia ||
@@ -175,10 +175,8 @@ window.onload = function() {
 
             return vis
         }
-        vis.yForFreqs = function(freqs) {
-            return freqs.map(function(f) {
-                return Math.log2(f)*vis.p.scaleFactor
-            })
+        vis.yFromFreq = function(freq) {
+                return Math.log2(freq)*vis.p.scaleFactor
         }
         vis.draw = function() {
             var dw = 2
@@ -217,10 +215,11 @@ window.onload = function() {
 
             if (vis.p.logScale) {
                 vis.p.canvasCtx.fillStyle = 'white'
-                var freqs = [55, 110, 220, 440, 440*2, 440*4, 440*8, 440*16, 440*32]
-                vis.yForFreqs(freqs).forEach(function(y, i) {
-                    vis.p.canvasCtx.fillText(freqs[i]+'Hz', vis.p.canvas.width-dw, vis.p.canvas.height-y)
-                })
+
+                for (var note in notes) {
+                    var freq = notes[note]
+                    vis.p.canvasCtx.fillText(note, vis.p.canvas.width-dw, vis.p.canvas.height-vis.yFromFreq(freq))
+                }
             }
         }
 
