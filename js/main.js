@@ -134,7 +134,7 @@ window.onload = function() {
             vis.p.tempCanvas.width = 800
             vis.p.tempCanvas.height = 600
 
-            vis.p.scaleFactor = vis.p.canvas.height/Math.log10(audioCtx.sampleRate/2)
+            vis.p.scaleFactor = vis.p.canvas.height/Math.log2(audioCtx.sampleRate/2)
 
             document.body.appendChild(vis.p.canvas)
 
@@ -146,7 +146,7 @@ window.onload = function() {
         }
         vis.yForFreqs = function(freqs) {
             return freqs.map(function(f) {
-                return Math.log10(f)*vis.p.scaleFactor
+                return Math.log2(f)*vis.p.scaleFactor
             })
         }
         vis.draw = function() {
@@ -166,10 +166,10 @@ window.onload = function() {
             var blen = vis.byteArray.length
             for (var i = 0; i < blen; i++) {
                 if (vis.p.logScale) {
-                    boxheight = Math.log10((i+1)/i)*vis.p.scaleFactor
+                    boxheight = Math.log2((i+1)/i)*vis.p.scaleFactor
                     if (boxheight == Infinity)
-                        boxheight = Math.log10(binwidth)*vis.p.scaleFactor
-                    y = Math.log10(i*binwidth)*vis.p.scaleFactor
+                        boxheight = Math.log2(binwidth)*vis.p.scaleFactor
+                    y = Math.log2(i*binwidth)*vis.p.scaleFactor
                     if (y < 0) y = 0
                 }
                 else
@@ -222,21 +222,21 @@ window.onload = function() {
 
     req.send()
 
-    // if (navigator.getUserMedia) {
-    //     navigator.getUserMedia(
-    //         { audio: true },
-    //         function(stream) {
-    //             var streamSource = audioCtx.createMediaStreamSource(stream)
+    if (navigator.getUserMedia) {
+        navigator.getUserMedia(
+            { audio: true },
+            function(stream) {
+                var streamSource = audioCtx.createMediaStreamSource(stream)
 
-    //             var spec = new centerspectrum()
-    //             spec.config(streamSource)
+                var spec = new centerspectrum()
+                spec.config(streamSource)
 
-    //             var tro = new spectrogram()
-    //             tro.config(streamSource)
-    //         },
-    //         function(err) {
-    //             console.error(err)
-    //         }
-    //     )
-    // }
+                var tro = new spectrogram()
+                tro.config(streamSource)
+            },
+            function(err) {
+                console.error(err)
+            }
+        )
+    }
 }
