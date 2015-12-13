@@ -1,9 +1,26 @@
 var colormap = require('colormap')
+var _ = require('lazy.js')
 
+// just for display, tonal accuracy is "unimportant"
 var musicMap = function() {
-    var A4 = 440
+    var map = this
+    var A1 = 55
     
+    // 12 semitones 
+    var factor = Math.pow(2, 1/12)
+    map.notes = [A1]
+
+    // turns out this is accurate enough for graphics
+    var note = A1
+    for (var i = 0; i < 12*9; i++) {
+        note *= factor
+        map.notes.push(note)
+    }
+
+    return map
 }
+
+musicMap()
 
 window.onload = function() {    
     navigator.getUserMedia = (navigator.getUserMedia ||
@@ -195,32 +212,6 @@ window.onload = function() {
 
         return vis
     }
-
-    var source = audioCtx.createBufferSource()
-    var req = new XMLHttpRequest()
-
-    req.open('GET', 'audio/gannet.mp3', true)
-    req.setRequestHeader('Content-Type', 'audio/mpeg')
-    req.responseType = 'arraybuffer'
-
-    req.onerror = function(err) {
-        console.error(err)
-    }
-
-    req.onload = function() {
-        var audio = req.response
-        console.log('audio');
-        console.log(audio);
-
-        audioCtx.decodeAudioData(audio, function(buffer) {
-            source.buffer = buffer
-
-            source.connect(audioCtx.destination)
-            source.loop = true
-        })
-    }
-
-    req.send()
 
     if (navigator.getUserMedia) {
         navigator.getUserMedia(
