@@ -1,6 +1,11 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var colormap = require('colormap')
 
+var musicMap = function() {
+    var A4 = 440
+    
+}
+
 window.onload = function() {    
     navigator.getUserMedia = (navigator.getUserMedia ||
                               navigator.webkitGetUserMedia ||
@@ -113,6 +118,7 @@ window.onload = function() {
         vis.p.smoothingTimeConstant = 0
         vis.p.tempCanvas = document.createElement('canvas')
         vis.p.tempCtx = vis.p.tempCanvas.getContext('2d')
+
         vis.p.logScale = true
 
         vis.config = function(streamSource) {
@@ -129,6 +135,8 @@ window.onload = function() {
             vis.p.tempCanvas.width = 800
             vis.p.tempCanvas.height = 600
 
+            vis.p.scaleFactor = vis.p.canvas.height/Math.log10(audioCtx.sampleRate/2)
+
             document.body.appendChild(vis.p.canvas)
 
             vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
@@ -137,24 +145,32 @@ window.onload = function() {
 
             return vis
         }
+        vis.yForFreqs = function(freqs) {
+            return freqs.map(function(f) {
+                return Math.log10(f)*vis.p.scaleFactor
+            })
+        }
         vis.draw = function() {
             var dw = 2
 
             vis.p.canvasCtx.fillStyle = 'black'
+            vis.p.canvasCtx.font = '18px Helvetica'
+            vis.p.canvasCtx.textAlign = 'right'
+
             vis.p.canvasCtx.fillRect(0, 0, vis.p.canvas.width, vis.p.canvas.height)
             vis.p.canvasCtx.drawImage(vis.p.tempCanvas, 0, 0)
+
             var boxheight = vis.p.canvas.height/vis.byteArray.length
             var binwidth = audioCtx.sampleRate/vis.p.fftSize
             var y = 0
-            var scaleFactor = vis.p.canvas.height/Math.log10(audioCtx.sampleRate/2)
 
             var blen = vis.byteArray.length
             for (var i = 0; i < blen; i++) {
                 if (vis.p.logScale) {
-                    boxheight = Math.log10((i+1)/i)*scaleFactor
+                    boxheight = Math.log10((i+1)/i)*vis.p.scaleFactor
                     if (boxheight == Infinity)
-                        boxheight = Math.log10(binwidth)*scaleFactor
-                    y = Math.log10(i*binwidth)*scaleFactor
+                        boxheight = Math.log10(binwidth)*vis.p.scaleFactor
+                    y = Math.log10(i*binwidth)*vis.p.scaleFactor
                     if (y < 0) y = 0
                 }
                 else
@@ -168,6 +184,14 @@ window.onload = function() {
             vis.p.tempCtx.translate(-dw, 0)
             vis.p.tempCtx.drawImage(vis.p.canvas, 0, 0)
             vis.p.tempCtx.translate(dw, 0)
+
+            if (vis.p.logScale) {
+                vis.p.canvasCtx.fillStyle = 'white'
+                var freqs = [55, 110, 220, 440, 440*2, 440*4, 440*8, 440*16, 440*32]
+                vis.yForFreqs(freqs).forEach(function(y, i) {
+                    vis.p.canvasCtx.fillText(freqs[i]+'Hz', vis.p.canvas.width-dw, vis.p.canvas.height-y)
+                })
+            }
         }
 
         return vis
