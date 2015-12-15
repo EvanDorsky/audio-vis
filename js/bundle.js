@@ -68,6 +68,8 @@ window.onload = function() {
         vis.p.canvas = document.createElement('canvas')
         vis.p.canvasCtx = vis.p.canvas.getContext('2d')
 
+        vis.rolling = true
+
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
             vis.analyser.fftSize = vis.p.fftSize
@@ -82,13 +84,19 @@ window.onload = function() {
 
             vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
 
-            vis.render()
+            vis.roll(true)
 
             return vis
         }
+        vis.roll = function(rolling) {
+            vis.rolling = rolling
+
+            if (rolling) vis.render()
+        }
         vis.render = function() {
             vis.analyser.getByteFrequencyData(vis.byteArray)
-            requestAnimationFrame(vis.render)
+
+            if (vis.rolling) requestAnimationFrame(vis.render)
 
             vis.draw()
         }
@@ -182,7 +190,7 @@ window.onload = function() {
             return vis
         }
         vis.yFromFreq = function(freq) {
-                return Math.log2(freq)*vis.p.scaleFactor
+            return (Math.log2(freq)*vis.p.scaleFactor | 0 )
         }
         vis.draw = function() {
             var dw = 2
@@ -220,11 +228,13 @@ window.onload = function() {
             vis.p.tempCtx.translate(dw, 0)
 
             if (vis.p.logScale) {
-                vis.p.canvasCtx.fillStyle = 'white'
+                vis.p.canvasCtx.fillStyle = 'rgba(255, 255, 255, .5)'
+                vis.p.canvasCtx.textBaseline = 'middle'
 
                 for (var j in Fs) {
                     var note = Fs[j]
                     vis.p.canvasCtx.fillText(note.name, vis.p.canvas.width-dw, vis.p.canvas.height-vis.yFromFreq(note.Hz))
+                    vis.p.canvasCtx.fillRect(0, vis.p.canvas.height-vis.yFromFreq(note.Hz)-1, vis.p.canvas.width, 1)
                 }
             }
         }
@@ -238,8 +248,8 @@ window.onload = function() {
             function(stream) {
                 var streamSource = audioCtx.createMediaStreamSource(stream)
 
-                var spec = new centerspectrum()
-                spec.config(streamSource)
+                // var spec = new centerspectrum()
+                // spec.config(streamSource)
 
                 var tro = new spectrogram()
                 tro.config(streamSource)
