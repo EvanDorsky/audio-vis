@@ -41,6 +41,13 @@ var Fs = notes.filter(function(x) {
     return /A\d/.test(x.name)
 })
 
+function keyEvent(e) {
+    if (e.keyCode === 32) // spacebar
+        window.tro.roll(!window.tro.rolling)
+}
+
+window.addEventListener('keypress', keyEvent, false)
+
 window.onload = function() {    
     navigator.getUserMedia = (navigator.getUserMedia ||
                               navigator.webkitGetUserMedia ||
@@ -250,7 +257,7 @@ window.onload = function() {
                 // var spec = new centerspectrum()
                 // spec.config(streamSource)
 
-                var tro = new spectrogram()
+                window.tro = new spectrogram()
                 tro.config(streamSource)
             },
             function(err) {
