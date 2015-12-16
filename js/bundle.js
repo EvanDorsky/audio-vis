@@ -193,7 +193,7 @@ window.onload = function() {
             streamSource.connect(vis.analyser)
 
             vis.p.canvas.width = 1440
-            vis.p.canvas.height = 800
+            vis.p.canvas.height = 900
 
             vis.p.tempCanvas.width = vis.p.canvas.width
             vis.p.tempCanvas.height = vis.p.canvas.height
@@ -227,10 +227,13 @@ window.onload = function() {
             var blen = vis.byteArray.length
             var bin0 = Math.floor(freq0/audioCtx.sampleRate*blen*2)
 
-            var rightPadding = 60
+            var rightPadding = 50
+            var specWidth = vis.p.canvas.width-rightPadding
 
             var y0 = vis.yFromFreq(freq0)
-            var sfactor = vis.p.canvas.height/(vis.p.canvas.height-y0+20)
+            var sfactor = vis.p.canvas.height/(vis.p.canvas.height-y0+25)
+
+            // draw spectrogram
             for (var i = bin0; i < blen; i++) {
                 if (vis.p.logScale) {
                     boxheight = Math.log2((i+1)/i)*vis.p.scaleFactor
@@ -244,17 +247,21 @@ window.onload = function() {
                 var norm = vis.byteArray[i]/255.0
                 vis.p.canvasCtx.fillStyle = colormapFromNorm(norm)
 
-                vis.p.canvasCtx.fillRect(vis.p.canvas.width-dw-rightPadding, (vis.p.canvas.height-y)*sfactor, dw, -(boxheight+1)*sfactor)
+                vis.p.canvasCtx.fillRect(specWidth-dw,
+                    (vis.p.canvas.height-y)*sfactor,
+                    dw,
+                    -(boxheight+1)*sfactor)
             }
 
             vis.p.tempCtx.translate(-dw, 0)
             vis.p.tempCtx.drawImage(vis.p.canvas, 0, 0)
             vis.p.tempCtx.translate(dw, 0)
 
-            vis.p.canvasCtx.font = '18px Helvetica'
+            vis.p.canvasCtx.font = '18px Open Sans'
             vis.p.canvasCtx.textAlign = 'right'
             vis.p.canvasCtx.textBaseline = 'middle'
 
+            // draw y ticks
             if (vis.p.logScale) {
                 vis.p.canvasCtx.fillStyle = 'white'
 
@@ -265,10 +272,33 @@ window.onload = function() {
                         (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
 
                     vis.p.canvasCtx.fillRect(vis.p.canvas.width-rightPadding,
-                        (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor-1,
+                        (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
                         rightPadding-30,
                         1)
                 }
+            }
+
+            vis.p.canvasCtx.textAlign = 'center'
+            vis.p.canvasCtx.textBaseline = 'bottom'
+
+            // 1380px
+            // 180px/sec assuming 60Hz refresh rate
+            // ticks every half second
+            var tickSpacing = 30*dw
+            // draw x ticks
+            var tickX = specWidth
+            var time = 0
+            while (tickX > 0) {
+                vis.p.canvasCtx.fillText(time,
+                    tickX,
+                    vis.p.canvas.height)
+
+                vis.p.canvasCtx.fillRect(tickX-1,
+                    vis.p.canvas.height-43,
+                    1,
+                    20)
+                tickX -= tickSpacing
+                time += 0.5
             }
         }
 
