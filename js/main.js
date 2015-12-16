@@ -55,7 +55,10 @@ strings.push(mMap.note('A4'))
 
 function keyEvent(e) {
     if (e.keyCode === 32) // spacebar
-        window.tro.roll(!window.tro.rolling)
+        window.tro.roll(!window.tro.p.rolling)
+
+    if (e.keyCode === 108) // L key
+        window.tro.setLines()
 }
 
 window.addEventListener('keypress', keyEvent, false)
@@ -86,7 +89,7 @@ window.onload = function() {
         vis.p.canvas = document.createElement('canvas')
         vis.p.canvasCtx = vis.p.canvas.getContext('2d')
 
-        vis.rolling = true
+        vis.p.rolling = true
 
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
@@ -107,14 +110,14 @@ window.onload = function() {
             return vis
         }
         vis.roll = function(rolling) {
-            vis.rolling = rolling
+            vis.p.rolling = rolling
 
             if (rolling) vis.render()
         }
         vis.render = function() {
             vis.analyser.getByteFrequencyData(vis.byteArray)
 
-            if (vis.rolling) requestAnimationFrame(vis.render)
+            if (vis.p.rolling) requestAnimationFrame(vis.render)
 
             vis.draw()
         }
@@ -182,6 +185,7 @@ window.onload = function() {
         vis.p.tempCtx = vis.p.tempCanvas.getContext('2d')
 
         vis.p.logScale = true
+        vis.p.lines = 0
 
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
@@ -209,6 +213,11 @@ window.onload = function() {
         }
         vis.yFromFreq = function(freq) {
             return (Math.log2(freq)*vis.p.scaleFactor | 0 )
+        }
+        vis.setLines = function() {
+            vis.p.lines = (vis.p.lines+1)%3
+
+            if (!vis.p.rolling) vis.render()
         }
         vis.draw = function() {
             var dw = 3
@@ -252,9 +261,11 @@ window.onload = function() {
                     -(boxheight+1)*sfactor)
             }
 
-            vis.p.tempCtx.translate(-dw, 0)
-            vis.p.tempCtx.drawImage(vis.p.canvas, 0, 0)
-            vis.p.tempCtx.translate(dw, 0)
+            if (vis.p.rolling) {
+                vis.p.tempCtx.translate(-dw, 0)
+                vis.p.tempCtx.drawImage(vis.p.canvas, 0, 0)
+                vis.p.tempCtx.translate(dw, 0)
+            }
 
             vis.p.canvasCtx.font = '18px Open Sans'
             vis.p.canvasCtx.textAlign = 'right'
@@ -262,9 +273,9 @@ window.onload = function() {
 
             // draw y ticks
             if (vis.p.logScale) {
-                vis.p.canvasCtx.fillStyle = 'white'
 
                 for (var j in As) {
+                    vis.p.canvasCtx.fillStyle = 'white'
                     var note = As[j]
                     vis.p.canvasCtx.fillText(note.name,
                         vis.p.canvas.width-dw,
@@ -274,8 +285,16 @@ window.onload = function() {
                         (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
                         rightPadding-30,
                         1)
+                    if (vis.p.lines) {
+                        vis.p.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
+                        vis.p.canvasCtx.fillRect(0,
+                            (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
+                            specWidth,
+                            1)
+                    }
                 }
             }
+            vis.p.canvasCtx.fillStyle = 'white'
 
             vis.p.canvasCtx.textAlign = 'center'
             vis.p.canvasCtx.textBaseline = 'bottom'
