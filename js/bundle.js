@@ -5,7 +5,7 @@ var _ = require('lazy.js')
 // just for display, tonal accuracy is "unimportant"
 var musicMap = function() {
     var map = this
-    var C1 = 55
+    var A1 = 55
     
     // 12 semitones 
     var factor = Math.pow(2, 1/12)
