@@ -273,7 +273,6 @@ window.onload = function() {
 
             // draw y ticks
             if (vis.p.logScale) {
-
                 for (var j in As) {
                     vis.p.canvasCtx.fillStyle = 'white'
                     var note = As[j]
@@ -285,7 +284,7 @@ window.onload = function() {
                         (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
                         rightPadding-30,
                         1)
-                    if (vis.p.lines) {
+                    if (vis.p.lines > 0) {
                         vis.p.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
                         vis.p.canvasCtx.fillRect(0,
                             (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
@@ -294,7 +293,6 @@ window.onload = function() {
                     }
                 }
             }
-            vis.p.canvasCtx.fillStyle = 'white'
 
             vis.p.canvasCtx.textAlign = 'center'
             vis.p.canvasCtx.textBaseline = 'bottom'
@@ -307,6 +305,7 @@ window.onload = function() {
             var tickX = specWidth
             var time = 0
             while (tickX > 0) {
+                vis.p.canvasCtx.fillStyle = 'white'
                 vis.p.canvasCtx.fillText(time,
                     tickX,
                     vis.p.canvas.height)
@@ -315,6 +314,15 @@ window.onload = function() {
                     vis.p.canvas.height-43,
                     1,
                     20)
+
+                if (vis.p.lines === 2) {
+                    vis.p.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
+                    vis.p.canvasCtx.fillRect(tickX-1,
+                        0,
+                        1,
+                        vis.p.canvas.height-43)
+                }
+
                 tickX -= tickSpacing
                 time += 0.5
             }
