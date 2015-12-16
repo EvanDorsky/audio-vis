@@ -4,7 +4,7 @@ var _ = require('lazy.js')
 // just for display, tonal accuracy is "unimportant"
 var musicMap = function() {
     var map = this
-    var A1 = 55
+    var C1 = 55
     
     // 12 semitones 
     var factor = Math.pow(2, 1/12)
@@ -33,14 +33,24 @@ var musicMap = function() {
         })
         note *= factor
     }
+    map.note = function(name) {
+        return notes.find(function(n) {
+            return n.name === name
+        })
+    }
+    map.notes = notes
 
-    return notes
+    return map
 }
 
-var notes = new musicMap()
-var Fs = notes.filter(function(x) {
+var mMap = new musicMap()
+var As = mMap.notes.filter(function(x) {
     return /A\d/.test(x.name)
 })
+As.push(mMap.note('C3'))
+As.push(mMap.note('G3'))
+As.push(mMap.note('D4'))
+As.push(mMap.note('C4'))
 
 function keyEvent(e) {
     if (e.keyCode === 32) // spacebar
@@ -213,7 +223,7 @@ window.onload = function() {
             var binwidth = audioCtx.sampleRate/vis.p.fftSize
             var y = 0
 
-            var freq0 = _(notes).find(function(x) {return x.name=='A3'}).Hz
+            var freq0 = mMap.note('A3').Hz
             var blen = vis.byteArray.length
             var bin0 = Math.floor(freq0/audioCtx.sampleRate*blen*2)
 
@@ -241,10 +251,9 @@ window.onload = function() {
 
             if (vis.p.logScale) {
                 vis.p.canvasCtx.fillStyle = 'rgba(255, 255, 255, .5)'
-                vis.p.canvasCtx.textBaseline = 'middle'
 
-                for (var j in Fs) {
-                    var note = Fs[j]
+                for (var j in As) {
+                    var note = As[j]
                     vis.p.canvasCtx.fillText(note.name, vis.p.canvas.width-dw, (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
                     vis.p.canvasCtx.fillRect(0, (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor-1, vis.p.canvas.width, 1)
                 }
