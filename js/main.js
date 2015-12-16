@@ -1,4 +1,5 @@
 var colormap = require('colormap')
+var _ = require('lazy.js')
 
 // just for display, tonal accuracy is "unimportant"
 var musicMap = function() {
@@ -58,7 +59,7 @@ window.onload = function() {
 
     var jet = colormap({
         colormap: 'electric',
-        nshades: 1024,
+        nshades: 2048,
         format: 'hex',
     })
 
@@ -164,7 +165,7 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = new visualizer()
 
-        vis.p.fftSize = 2048
+        vis.p.fftSize = 4096
         vis.p.smoothingTimeConstant = 0
         vis.p.tempCanvas = document.createElement('canvas')
         vis.p.tempCtx = vis.p.tempCanvas.getContext('2d')
@@ -212,8 +213,13 @@ window.onload = function() {
             var binwidth = audioCtx.sampleRate/vis.p.fftSize
             var y = 0
 
+            var freq0 = _(notes).find(function(x) {return x.name=='A3'}).Hz
             var blen = vis.byteArray.length
-            for (var i = 0; i < blen; i++) {
+            var bin0 = Math.floor(freq0/audioCtx.sampleRate*blen*2)
+
+            var y0 = vis.yFromFreq(freq0)
+            var sfactor = vis.p.canvas.height/(vis.p.canvas.height-y0)
+            for (var i = bin0; i < blen; i++) {
                 if (vis.p.logScale) {
                     boxheight = Math.log2((i+1)/i)*vis.p.scaleFactor
                     if (boxheight == Infinity)
@@ -226,7 +232,7 @@ window.onload = function() {
                 var norm = vis.byteArray[i]/255.0
                 vis.p.canvasCtx.fillStyle = colormapFromNorm(norm)
 
-                vis.p.canvasCtx.fillRect(vis.p.canvas.width-dw, vis.p.canvas.height-y, dw, -(boxheight+1))
+                vis.p.canvasCtx.fillRect(vis.p.canvas.width-dw, (vis.p.canvas.height-y)*sfactor, dw, -(boxheight+1)*sfactor)
             }
 
             vis.p.tempCtx.translate(-dw, 0)
@@ -239,8 +245,8 @@ window.onload = function() {
 
                 for (var j in Fs) {
                     var note = Fs[j]
-                    vis.p.canvasCtx.fillText(note.name, vis.p.canvas.width-dw, vis.p.canvas.height-vis.yFromFreq(note.Hz))
-                    vis.p.canvasCtx.fillRect(0, vis.p.canvas.height-vis.yFromFreq(note.Hz)-1, vis.p.canvas.width, 1)
+                    vis.p.canvasCtx.fillText(note.name, vis.p.canvas.width-dw, (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
+                    vis.p.canvasCtx.fillRect(0, (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor-1, vis.p.canvas.width, 1)
                 }
             }
         }
