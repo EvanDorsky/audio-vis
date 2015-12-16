@@ -2,7 +2,11 @@
   margin: 0;
   padding: 0;
 }
+html {
+  overflow: hidden;
+}
 body {
+  overflow: hidden;
   background-color: #000;
   position: relative;
 }

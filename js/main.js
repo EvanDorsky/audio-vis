@@ -99,7 +99,7 @@ window.onload = function() {
             streamSource.connect(vis.analyser)
 
             vis.p.canvas.width = 1440
-            vis.p.canvas.height = 900
+            vis.p.canvas.height = 800
 
             document.body.appendChild(vis.p.canvas)
 
@@ -267,7 +267,7 @@ window.onload = function() {
                 vis.p.tempCtx.translate(dw, 0)
             }
 
-            vis.p.canvasCtx.font = '18px Open Sans'
+            vis.p.canvasCtx.font = '100 18px Open Sans'
             vis.p.canvasCtx.textAlign = 'right'
             vis.p.canvasCtx.textBaseline = 'middle'
 
