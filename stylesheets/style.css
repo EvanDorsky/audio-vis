@@ -8,5 +8,5 @@ html {
 body {
   overflow: hidden;
   background-color: #000;
-  position: relative;
+  cursor: crosshair;
 }

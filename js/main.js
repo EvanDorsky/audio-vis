@@ -55,7 +55,7 @@ strings.push(mMap.note('A4'))
 
 function keyEvent(e) {
     if (e.keyCode === 32) // spacebar
-        window.tro.roll(!window.tro.p.rolling)
+        window.tro.roll(!window.tro.rolling)
 
     if (e.keyCode === 108) // L key
         window.tro.setLines()
@@ -136,16 +136,6 @@ window.onload = function() {
             if (vis.rolling) requestAnimationFrame(vis.render)
 
             vis.draw()
-        }
-        vis.genGetSet = function() {
-            Object.keys(vis).forEach(function(key) {
-                vis[key] = function(_) {
-                    if (!arguments.length) return p[key]
-
-                    p[key] = _
-                    return vis
-                }
-            })
         }
 
         return vis
@@ -230,7 +220,7 @@ window.onload = function() {
             return vis
         }
         vis.yFromFreq = function(freq) {
-            return (Math.log2(freq)*vis.scaleFactor | 0 )
+            return (Math.log2(freq)*vis.scaleFactor | 0)
         }
         vis.setLines = function() {
             vis.lines = (vis.lines+1)%3
@@ -347,7 +337,8 @@ window.onload = function() {
 
             // draw cursor
             if (vis.cursor.down) {
-                vis.canvasCtx.fillRect(vis.cursor.x, vis.cursor.y, 10, 10)
+                vis.canvasCtx.fillRect(0, vis.cursor.y, specWidth, 1)
+                vis.canvasCtx.fillRect(vis.cursor.x, 0, -1, vis.canvas.height-43)
             }
         }
 
