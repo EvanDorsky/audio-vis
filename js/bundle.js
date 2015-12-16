@@ -38,6 +38,11 @@ var musicMap = function() {
             return n.name === name
         })
     }
+    map.nearest = function(freq) {
+        return notes.find(function(n) {
+            return Math.abs(n.Hz-freq) < 10
+        })
+    }
     map.notes = notes
 
     return map
@@ -232,6 +237,12 @@ window.onload = function() {
         vis.yFromFreq = function(freq) {
             return (Math.log2(freq)*vis.scaleFactor | 0)
         }
+        vis.freqFromY = function(y) {
+            var freq = Math.pow(2, y/vis.scaleFactor)
+            console.log('freq');
+            console.log(freq);
+            return freq
+        }
         vis.setLines = function() {
             vis.lines = (vis.lines+1)%3
 
@@ -273,10 +284,8 @@ window.onload = function() {
                 var norm = vis.byteArray[i]/255.0
                 vis.canvasCtx.fillStyle = colormapFromNorm(norm)
 
-                vis.canvasCtx.fillRect(specWidth-dw,
-                    (vis.canvas.height-y)*sfactor,
-                    dw,
-                    -(boxheight+1)*sfactor)
+                vis.canvasCtx.fillRect(specWidth-dw, (vis.canvas.height-y)*sfactor,
+                    dw, -(boxheight+1)*sfactor)
             }
 
             if (vis.rolling) {
@@ -297,17 +306,14 @@ window.onload = function() {
                     vis.canvasCtx.fillText(note.name,
                         vis.canvas.width-dw,
                         (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
-
                     vis.canvasCtx.fillRect(vis.canvas.width-rightPadding,
                         (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
-                        rightPadding-30,
-                        1)
+                        rightPadding-30, 1)
+
                     if (vis.lines > 0) {
                         vis.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
-                        vis.canvasCtx.fillRect(0,
-                            (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
-                            specWidth,
-                            1)
+                        vis.canvasCtx.fillRect(0, (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
+                            specWidth, 1)
                     }
                 }
             }
@@ -315,9 +321,7 @@ window.onload = function() {
             vis.canvasCtx.textAlign = 'center'
             vis.canvasCtx.textBaseline = 'bottom'
 
-            // 1380px
-            // 180px/sec assuming 60Hz refresh rate
-            // ticks every half second
+            // ticks every half second, 60Hz refresh rate
             var tickSpacing = 30*dw
             // draw x ticks
             var tickX = specWidth
@@ -325,21 +329,12 @@ window.onload = function() {
             var time = 0
             while (tickX > 0) {
                 vis.canvasCtx.fillStyle = 'white'
-                vis.canvasCtx.fillText(time,
-                    tickX,
-                    vis.canvas.height)
-
-                vis.canvasCtx.fillRect(tickX-1,
-                    vis.canvas.height-43,
-                    1,
-                    20)
+                vis.canvasCtx.fillText(time, tickX, vis.canvas.height)
+                vis.canvasCtx.fillRect(tickX-1, specHeight, 1, 20)
 
                 if (vis.lines === 2) {
                     vis.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
-                    vis.canvasCtx.fillRect(tickX-1,
-                        0,
-                        1,
-                        specHeight)
+                    vis.canvasCtx.fillRect(tickX-1, 0, 1, specHeight)
                 }
 
                 tickX -= tickSpacing
@@ -350,6 +345,24 @@ window.onload = function() {
             if (vis.cursor.down) {
                 vis.canvasCtx.fillRect(0, vis.cursor.y, specWidth, 1)
                 vis.canvasCtx.fillRect(vis.cursor.x, 0, -1, specHeight)
+
+                var yFromY = (vis.canvas.height - vis.cursor.y/sfactor)
+                console.log('yFromY')
+                console.log(yFromY)
+
+                // draw nearest Y label
+                var nearest = mMap.nearest(vis.freqFromY(yFromY))
+                var nearY = vis.yFromFreq(nearest.Hz)
+
+                if (nearest) {
+                    vis.canvasCtx.fillStyle = 'white'
+                    vis.canvasCtx.fillText(nearest.name,
+                        vis.canvas.width-dw,
+                        (vis.canvas.height-nearY)*sfactor)
+                    vis.canvasCtx.fillRect(vis.canvas.width-rightPadding,
+                        (vis.canvas.height-nearY)*sfactor,
+                        rightPadding-30, 1)
+                }
             }
         }
 
