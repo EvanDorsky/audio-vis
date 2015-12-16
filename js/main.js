@@ -63,15 +63,24 @@ function keyEvent(e) {
 
 function mouseDown(e) {
     window.tro.cursor.down = true
+
+    if (!window.tro.rolling)
+        window.tro.render()
 }
 
 function mouseMove(e) {
     window.tro.cursor.x = e.x
     window.tro.cursor.y = e.y
+
+    if (!window.tro.rolling)
+        window.tro.render()
 }
 
 function mouseUp(e) {
     window.tro.cursor.down = false
+
+    if (!window.tro.rolling)
+        window.tro.render()
 }
 
 window.addEventListener('keypress', keyEvent, false)
@@ -311,6 +320,7 @@ window.onload = function() {
             var tickSpacing = 30*dw
             // draw x ticks
             var tickX = specWidth
+            var specHeight = vis.canvas.height-43
             var time = 0
             while (tickX > 0) {
                 vis.canvasCtx.fillStyle = 'white'
@@ -328,7 +338,7 @@ window.onload = function() {
                     vis.canvasCtx.fillRect(tickX-1,
                         0,
                         1,
-                        vis.canvas.height-43)
+                        specHeight)
                 }
 
                 tickX -= tickSpacing
@@ -338,7 +348,7 @@ window.onload = function() {
             // draw cursor
             if (vis.cursor.down) {
                 vis.canvasCtx.fillRect(0, vis.cursor.y, specWidth, 1)
-                vis.canvasCtx.fillRect(vis.cursor.x, 0, -1, vis.canvas.height-43)
+                vis.canvasCtx.fillRect(vis.cursor.x, 0, -1, specHeight)
             }
         }
 
