@@ -215,8 +215,6 @@ window.onload = function() {
             var dw = 3
 
             vis.p.canvasCtx.fillStyle = 'black'
-            vis.p.canvasCtx.font = '18px Helvetica'
-            vis.p.canvasCtx.textAlign = 'right'
 
             vis.p.canvasCtx.fillRect(0, 0, vis.p.canvas.width, vis.p.canvas.height)
             vis.p.canvasCtx.drawImage(vis.p.tempCanvas, 0, 0)
@@ -229,8 +227,10 @@ window.onload = function() {
             var blen = vis.byteArray.length
             var bin0 = Math.floor(freq0/audioCtx.sampleRate*blen*2)
 
+            var rightPadding = 60
+
             var y0 = vis.yFromFreq(freq0)
-            var sfactor = vis.p.canvas.height/(vis.p.canvas.height-y0)
+            var sfactor = vis.p.canvas.height/(vis.p.canvas.height-y0+20)
             for (var i = bin0; i < blen; i++) {
                 if (vis.p.logScale) {
                     boxheight = Math.log2((i+1)/i)*vis.p.scaleFactor
@@ -244,20 +244,30 @@ window.onload = function() {
                 var norm = vis.byteArray[i]/255.0
                 vis.p.canvasCtx.fillStyle = colormapFromNorm(norm)
 
-                vis.p.canvasCtx.fillRect(vis.p.canvas.width-dw, (vis.p.canvas.height-y)*sfactor, dw, -(boxheight+1)*sfactor)
+                vis.p.canvasCtx.fillRect(vis.p.canvas.width-dw-rightPadding, (vis.p.canvas.height-y)*sfactor, dw, -(boxheight+1)*sfactor)
             }
 
             vis.p.tempCtx.translate(-dw, 0)
             vis.p.tempCtx.drawImage(vis.p.canvas, 0, 0)
             vis.p.tempCtx.translate(dw, 0)
 
-            if (vis.p.logScale) {
-                vis.p.canvasCtx.fillStyle = 'rgba(255, 255, 255, .5)'
+            vis.p.canvasCtx.font = '18px Helvetica'
+            vis.p.canvasCtx.textAlign = 'right'
+            vis.p.canvasCtx.textBaseline = 'middle'
 
-                for (var j in strings) {
-                    var note = strings[j]
-                    vis.p.canvasCtx.fillText(note.name, vis.p.canvas.width-dw, (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
-                    vis.p.canvasCtx.fillRect(0, (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor-1, vis.p.canvas.width, 1)
+            if (vis.p.logScale) {
+                vis.p.canvasCtx.fillStyle = 'white'
+
+                for (var j in As) {
+                    var note = As[j]
+                    vis.p.canvasCtx.fillText(note.name,
+                        vis.p.canvas.width-dw,
+                        (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
+
+                    vis.p.canvasCtx.fillRect(vis.p.canvas.width-rightPadding,
+                        (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor-1,
+                        rightPadding-30,
+                        1)
                 }
             }
         }
@@ -270,9 +280,6 @@ window.onload = function() {
             { audio: true },
             function(stream) {
                 var streamSource = audioCtx.createMediaStreamSource(stream)
-
-                // var spec = new centerspectrum()
-                // spec.config(streamSource)
 
                 window.tro = new spectrogram()
                 tro.config(streamSource)
