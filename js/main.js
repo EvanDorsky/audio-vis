@@ -1,5 +1,4 @@
 var colormap = require('colormap')
-var _ = require('lazy.js')
 
 // just for display, tonal accuracy is "unimportant"
 var musicMap = function() {
@@ -96,8 +95,8 @@ window.onload = function() {
 
             streamSource.connect(vis.analyser)
 
-            vis.p.canvas.width = 800
-            vis.p.canvas.height = 600
+            vis.p.canvas.width = 1440
+            vis.p.canvas.height = 900
 
             document.body.appendChild(vis.p.canvas)
 
@@ -192,11 +191,11 @@ window.onload = function() {
 
             streamSource.connect(vis.analyser)
 
-            vis.p.canvas.width = 800
-            vis.p.canvas.height = 600
+            vis.p.canvas.width = 1440
+            vis.p.canvas.height = 800
 
-            vis.p.tempCanvas.width = 800
-            vis.p.tempCanvas.height = 600
+            vis.p.tempCanvas.width = vis.p.canvas.width
+            vis.p.tempCanvas.height = vis.p.canvas.height
 
             vis.p.scaleFactor = vis.p.canvas.height/Math.log2(audioCtx.sampleRate/2)
 
@@ -212,7 +211,7 @@ window.onload = function() {
             return (Math.log2(freq)*vis.p.scaleFactor | 0 )
         }
         vis.draw = function() {
-            var dw = 2
+            var dw = 3
 
             vis.p.canvasCtx.fillStyle = 'black'
             vis.p.canvasCtx.font = '18px Helvetica'
