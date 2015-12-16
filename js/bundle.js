@@ -2,30 +2,27 @@
 var colormap = require('colormap')
 
 // http://oli.me.uk/2013/06/08/searching-javascript-arrays-with-a-binary-search/
-function binaryIndexOf(searchElement) {
+function binaryIndexOf(seEl) {
     var minIndex = 0
     var maxIndex = this.length - 1
-    var currentIndex
-    var currentElement
+    var cInd
+    var curEl
     var runningDiff = 10000
     var diff = 0
     
     while (minIndex <= maxIndex) {
-        currentIndex = (minIndex + maxIndex) / 2 | 0
-        currentElement = this[currentIndex]
-        diff = Math.abs(currentElement - searchElement)
+        cInd = (minIndex + maxIndex) / 2 | 0
+        curEl = this[cInd]
 
-        if (currentElement < searchElement) {
-            runningDiff = diff
-            minIndex = currentIndex + 1
+        if (curEl < seEl) {
+            minIndex = cInd + 1
         }
-        else if (currentElement > searchElement) {
-            runningDiff = diff
-            maxIndex = currentIndex - 1
+        else if (curEl > seEl) {
+            maxIndex = cInd - 1
         }
     }
 
-    return currentIndex
+    return cInd
 }
 
 Array.prototype.binaryIndexOf = binaryIndexOf
@@ -368,6 +365,7 @@ window.onload = function() {
                 time += 0.5
             }
 
+            vis.canvasCtx.fillStyle = 'white'
             // draw cursor
             if (vis.cursor.down) {
                 vis.canvasCtx.fillRect(0, vis.cursor.y, specWidth, 1)
@@ -381,12 +379,15 @@ window.onload = function() {
 
                 if (nearest) {
                     vis.canvasCtx.fillStyle = 'white'
+                    vis.canvasCtx.textAlign = 'right'
+                    vis.canvasCtx.textBaseline = 'middle'
+
                     vis.canvasCtx.fillText(nearest.name,
                         vis.canvas.width-dw,
                         (vis.canvas.height-nearY)*sfactor)
                     vis.canvasCtx.fillRect(vis.canvas.width-rightPadding,
                         (vis.canvas.height-nearY)*sfactor,
-                        rightPadding-30, 1)
+                        rightPadding-40, 1)
                 }
             }
         }
