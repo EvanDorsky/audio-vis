@@ -4,18 +4,15 @@ var _ = require('lazy.js')
 // just for display, tonal accuracy is "unimportant"
 var musicMap = function() {
     var map = this
-    var A1 = 55
+    var C1 = 32.7
     
     // 12 semitones 
     var factor = Math.pow(2, 1/12)
     var notes = []
 
     // turns out this is accurate enough for graphics
-    var note = A1
+    var note = C1
     var octave = [
-        'A',
-        'A#',
-        'B',
         'C',
         'C#',
         'D',
@@ -25,6 +22,9 @@ var musicMap = function() {
         'F#',
         'G',
         'G#',
+        'A',
+        'A#',
+        'B',
     ]
     for (var i = 0; i < 12*9; i++) {
         notes.push({
@@ -47,10 +47,12 @@ var mMap = new musicMap()
 var As = mMap.notes.filter(function(x) {
     return /A\d/.test(x.name)
 })
-As.push(mMap.note('C3'))
-As.push(mMap.note('G3'))
-As.push(mMap.note('D4'))
-As.push(mMap.note('C4'))
+
+var strings = []
+strings.push(mMap.note('C3'))
+strings.push(mMap.note('G3'))
+strings.push(mMap.note('D4'))
+strings.push(mMap.note('A4'))
 
 function keyEvent(e) {
     if (e.keyCode === 32) // spacebar
@@ -223,7 +225,7 @@ window.onload = function() {
             var binwidth = audioCtx.sampleRate/vis.p.fftSize
             var y = 0
 
-            var freq0 = mMap.note('A3').Hz
+            var freq0 = mMap.note('A2').Hz
             var blen = vis.byteArray.length
             var bin0 = Math.floor(freq0/audioCtx.sampleRate*blen*2)
 
@@ -252,8 +254,8 @@ window.onload = function() {
             if (vis.p.logScale) {
                 vis.p.canvasCtx.fillStyle = 'rgba(255, 255, 255, .5)'
 
-                for (var j in As) {
-                    var note = As[j]
+                for (var j in strings) {
+                    var note = strings[j]
                     vis.p.canvasCtx.fillText(note.name, vis.p.canvas.width-dw, (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
                     vis.p.canvasCtx.fillRect(0, (vis.p.canvas.height-vis.yFromFreq(note.Hz))*sfactor-1, vis.p.canvas.width, 1)
                 }
