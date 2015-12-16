@@ -1,6 +1,35 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var colormap = require('colormap')
 
+// http://oli.me.uk/2013/06/08/searching-javascript-arrays-with-a-binary-search/
+function binaryIndexOf(searchElement) {
+    var minIndex = 0
+    var maxIndex = this.length - 1
+    var currentIndex
+    var currentElement
+    var runningDiff = 10000
+    var diff = 0
+    
+    while (minIndex <= maxIndex) {
+        currentIndex = (minIndex + maxIndex) / 2 | 0
+        currentElement = this[currentIndex]
+        diff = Math.abs(currentElement - searchElement)
+
+        if (currentElement < searchElement) {
+            runningDiff = diff
+            minIndex = currentIndex + 1
+        }
+        else if (currentElement > searchElement) {
+            runningDiff = diff
+            maxIndex = currentIndex - 1
+        }
+    }
+
+    return currentIndex
+}
+
+Array.prototype.binaryIndexOf = binaryIndexOf
+
 // just for display, tonal accuracy is "unimportant"
 var musicMap = function() {
     var map = this
@@ -9,6 +38,7 @@ var musicMap = function() {
     // 12 semitones 
     var factor = Math.pow(2, 1/12)
     var notes = []
+    var noteFreqs = []
 
     // turns out this is accurate enough for graphics
     var note = C1
@@ -31,6 +61,7 @@ var musicMap = function() {
             name: octave[i%12]+(1+i/12 | 0),
             Hz: note
         })
+        noteFreqs.push(note)
         note *= factor
     }
     map.note = function(name) {
@@ -39,9 +70,7 @@ var musicMap = function() {
         })
     }
     map.nearest = function(freq) {
-        return notes.find(function(n) {
-            return Math.abs(n.Hz-freq) < 10
-        })
+        return notes[noteFreqs.binaryIndexOf(freq)]
     }
     map.notes = notes
 
@@ -239,8 +268,6 @@ window.onload = function() {
         }
         vis.freqFromY = function(y) {
             var freq = Math.pow(2, y/vis.scaleFactor)
-            console.log('freq');
-            console.log(freq);
             return freq
         }
         vis.setLines = function() {
@@ -347,8 +374,6 @@ window.onload = function() {
                 vis.canvasCtx.fillRect(vis.cursor.x, 0, -1, specHeight)
 
                 var yFromY = (vis.canvas.height - vis.cursor.y/sfactor)
-                console.log('yFromY')
-                console.log(yFromY)
 
                 // draw nearest Y label
                 var nearest = mMap.nearest(vis.freqFromY(yFromY))
