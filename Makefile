@@ -4,7 +4,7 @@ index.html : jade/index.jade stylesheets/style.css
 	jade jade/index.jade -o .
 
 js/bundle.js : js/main.js
-	browserify js/main.js > js/bundle.js
+	browserify -t strictify js/main.js > js/bundle.js
 
 stylesheets/style.css : stylus/style.styl
 	stylus stylus/style.styl -o stylesheets
