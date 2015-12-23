@@ -121,7 +121,21 @@ window.addEventListener('mousedown', mouseDown, false)
 window.addEventListener('mousemove', mouseMove, false)
 window.addEventListener('mouseup', mouseUp, false)
 
-window.onload = function() {    
+window.onload = function() {
+    var dft = Module.cwrap('dft', 'array', ['number', 'array'])
+
+    var ptr = dft(6, [100, 100, 100, 100, 100, 100])
+
+    console.log('JS RESULTS')
+    for (var offset = 8; offset < 18; offset++) {
+        console.log('OFFSET '+offset)
+        for (var i = 0; i < 6; i++) {
+            var real = getValue(ptr+i*offset, 'double')
+            var imag = getValue(ptr+i*offset+8, 'double')
+            console.log(real+' '+imag+'i')
+        }
+    }
+
     navigator.getUserMedia = (navigator.getUserMedia ||
                               navigator.webkitGetUserMedia ||
                               navigator.mozGetUserMedia ||
