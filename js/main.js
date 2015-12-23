@@ -124,14 +124,11 @@ window.onload = function() {
 
     var ptr = dft(6, [100, 100, 100, 100, 100, 100])
 
-    console.log('JS RESULTS')
-    for (var offset = 8; offset < 18; offset++) {
-        console.log('OFFSET '+offset)
-        for (var i = 0; i < 6; i++) {
-            var real = getValue(ptr+i*offset, 'double')
-            var imag = getValue(ptr+i*offset+8, 'double')
-            console.log(real+' '+imag+'i')
-        }
+    var offset = 16
+    for (var i = 0; i < 6; i++) {
+        var real = getValue(ptr+i*offset, 'double')
+        var imag = getValue(ptr+i*offset+offset/2, 'double')
+        console.log(real+' '+imag+'i')
     }
 
     navigator.getUserMedia = (navigator.getUserMedia ||
