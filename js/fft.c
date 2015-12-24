@@ -64,7 +64,7 @@ typedef complex double cx;
 typedef unsigned char uchar;
 
 cx* dft(int, cx[]);
-unsigned char* cdft(int, cx[]);
+uchar* cdft(int, uchar[]);
 
 double cmag(cx z) {
     return sqrt(creal(z)*creal(z) + cimag(z)*cimag(z));
@@ -89,15 +89,15 @@ cx* dft(int N, cx x[N]) {
     return X;
 }
 
-unsigned char* cdft(int N, cx x[N]) {
-    unsigned char* X = (unsigned char*)malloc(N * sizeof(unsigned char));
+uchar* cdft(int N, uchar x[N]) {
+    uchar* X = (uchar*)malloc(N * sizeof(uchar));
 
     cx Xk = 0;
     for (int k = 0; k < N; k++) {
         for (int n = 0; n < N; n++) {
-            Xk += x[n]*cexp(-I*2*M_PI*k*n/(N*1.0));
+            Xk += ((x[n]-127)/255.0)*cexp(-I*2*M_PI*k*n/(N*1.0));
         }
-        X[k] = (unsigned char)(cmag(Xk)/10.0*255);
+        X[k] = (uchar)(cmag(Xk)*255);
         Xk = 0;
     }
 

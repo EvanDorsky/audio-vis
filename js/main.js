@@ -176,7 +176,7 @@ window.onload = function() {
             vis.analyser.getByteTimeDomainData(vis.byteArray)
 
             var ptr = dft(vis.byteArray.length, vis.byteArray)
-            var bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
+            vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
 
             if (vis.rolling) requestAnimationFrame(vis.render)
 
@@ -230,7 +230,7 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = new visualizer()
 
-        vis.fftSize = 128
+        vis.fftSize = 1024
         vis.smoothingTimeConstant = 0
         vis.tempCanvas = document.createElement('canvas')
         vis.tempCtx = vis.tempCanvas.getContext('2d')
@@ -309,7 +309,7 @@ window.onload = function() {
                 }
                 else
                     y = i*boxheight
-                var norm = vis.byteArray[i]/255.0
+                var norm = vis.bytes[i]/255.0
                 vis.canvasCtx.fillStyle = colormapFromNorm(norm)
 
                 vis.canvasCtx.fillRect(specWidth-dw, (vis.canvas.height-y)*sfactor,
