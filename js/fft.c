@@ -11,6 +11,7 @@ typedef complex double cx;
 
 cx* dft(int, cx[]);
 char* cdft(int, char[]);
+char* cblackman(int N, char x[N]);
 
 double cmag(cx z) {
     return sqrt(creal(z)*creal(z) + cimag(z)*cimag(z));
@@ -35,20 +36,35 @@ cx* dft(int N, cx x[N]) {
     return X;
 }
 
-char* cdft(int N, char x[N/2]) {
-    char* X = (char*)malloc(N/2 * sizeof(char));
+char* cdft(int N, char x[N]) {
+    char* X = (char*)malloc(N * sizeof(char));
+
+    x = cblackman(N, x);
 
     cx Xk = 0;
-    for (int k = 0; k < N/2; k++) { // only real inputs
+    for (int k = 0; k < N; k++) {
         for (int n = 0; n < N; n++) {
             Xk += x[n]*cexp(-I*2*M_PI*k*n/(N*1.0));
         }
         X[k] = (char)(cmag(Xk)/N);
-        // printf("%f\n", cmag(Xk)/N);
         Xk = 0;
     }
 
     return X;
+}
+
+static const double a = 0.16;
+static const double a0 = (1-a)/2.0;
+static const double a1 = 0.5;
+static const double a2 = a/2;
+char* cblackman(int N, char x[N]) {
+    char* xb = (char*)malloc(N * sizeof(char));
+
+    for (int n = 0; n < N; n++) {
+        xb[n] = x[n]*(a0 - a1*cos(2*M_PI*n/(N - 1.0)) + a2*cos(4*M_PI*n/(N - 1.0)));
+    }
+
+    return xb;
 }
 
 double _Complex

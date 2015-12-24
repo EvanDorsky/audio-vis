@@ -123,7 +123,10 @@ window.onload = function() {
         return x*127 | 0
     })
     var ptr = dft(sine351.length, sine351)
-    var bytes = Module.HEAP8.subarray(ptr, ptr+sine351.length/2)
+    var bytes = Module.HEAP8.subarray(ptr, ptr+sine351.length)
+
+    console.log('bytes')
+    console.log(bytes)
 
     navigator.getUserMedia = (navigator.getUserMedia ||
                               navigator.webkitGetUserMedia ||
@@ -180,7 +183,7 @@ window.onload = function() {
             vis.analyser.getByteTimeDomainData(vis.byteArray)
 
             var ptr = dft(vis.byteArray.length, vis.byteArray)
-            vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length/2)
+            vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
 
             // console.log('vis.bytes')
             // console.log(vis.bytes)
@@ -467,11 +470,11 @@ window.onload = function() {
             function(stream) {
                 var streamSource = audioCtx.createMediaStreamSource(stream)
 
-                // window.tro = new spectrogram()
-                // window.tro.config(streamSource)
+                window.tro = new spectrogram()
+                window.tro.config(streamSource)
 
-                window.activeVis = new spectrum()
-                window.activeVis.config(streamSource)
+                // window.activeVis = new spectrum()
+                // window.activeVis.config(streamSource)
 
                 // window.scope = new scope()
                 // window.scope.config(streamSource)
