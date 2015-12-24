@@ -49,13 +49,13 @@ void gen_blackman(double a, int N, double* blackman) {
     double a1 = 0.5;
     double a2 = a/2;
 
-    for (int n = 0; n < N; n++) {
+    for (int n = 0; n < N+1; n++) {
         blackman[n] = a0 - a1*cos(2*M_PI*n/(N - 1.0)) + a2*cos(4*M_PI*n/(N - 1.0));
     }
 }
 
 void gen_hann(double a, int N, double* hann) {
-    for (int n = 0; n < N; n++) {
+    for (int n = 0; n < N+1; n++) {
         hann[n] = 0.5*(1 - cos(2*M_PI*n/(N - 1.0)));
     }
 }
