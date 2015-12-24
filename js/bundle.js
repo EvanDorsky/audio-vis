@@ -472,8 +472,8 @@ window.onload = function() {
             function(stream) {
                 var streamSource = audioCtx.createMediaStreamSource(stream)
 
-                window.tro = new spectrogram()
-                window.tro.config(streamSource)
+                window.activeVis = new spectrogram()
+                window.activeVis.config(streamSource)
 
                 // window.activeVis = new spectrum()
                 // window.activeVis.config(streamSource)
