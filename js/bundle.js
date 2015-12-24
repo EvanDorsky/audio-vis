@@ -122,16 +122,13 @@ window.addEventListener('mousemove', mouseMove, false)
 window.addEventListener('mouseup', mouseUp, false)
 
 window.onload = function() {
-    var dft = Module.cwrap('dft', 'array', ['number', 'array'])
+    var dft = Module.cwrap('cdft', 'array', ['number', 'array'])
 
-    var ptr = dft(6, [100, 100, 100, 100, 100, 100])
+    var ptr = dft(6, [1, 2, 3, 4, 5, 6])
+    var bytes = Module.HEAP8.subarray(ptr, ptr+6)
 
-    var offset = 16
-    for (var i = 0; i < 6; i++) {
-        var real = getValue(ptr+i*offset, 'double')
-        var imag = getValue(ptr+i*offset+offset/2, 'double')
-        console.log(real+' '+imag+'i')
-    }
+    console.log('bytes')
+    console.log(bytes)
 
     navigator.getUserMedia = (navigator.getUserMedia ||
                               navigator.webkitGetUserMedia ||
