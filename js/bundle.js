@@ -318,8 +318,8 @@ window.onload = function() {
             vis.gwidth = vis.canvas.width-vis.margin*2
             vis.gheight = vis.canvas.height-vis.margin*2
 
-            vis.tempCanvas.width = vis.canvas.width
-            vis.tempCanvas.height = vis.canvas.height
+            vis.tempCanvas.width = vis.gwidth
+            vis.tempCanvas.height = vis.gheight
 
             vis.scaleFactor = vis.canvas.height/Math.log2(audioCtx.sampleRate/2)
 
@@ -349,7 +349,7 @@ window.onload = function() {
             vis.canvasCtx.fillStyle = 'dodgerblue'
 
             vis.canvasCtx.fillRect(0, 0, vis.canvas.width, vis.canvas.height)
-            vis.canvasCtx.drawImage(vis.tempCanvas, 0, 0)
+            vis.canvasCtx.drawImage(vis.tempCanvas, 0, 0, vis.gwidth, vis.gheight, vis.margin, vis.margin, vis.gwidth, vis.gheight)
 
             var blen = vis.bytes.length
             var boxheight = vis.gheight/blen
@@ -386,7 +386,7 @@ window.onload = function() {
 
             if (vis.rolling) {
                 vis.tempCtx.translate(-dw, 0)
-                vis.tempCtx.drawImage(vis.canvas, vis.margin, vis.margin, vis.gwidth, vis.gheight)
+                vis.tempCtx.drawImage(vis.canvas, vis.margin, vis.margin, vis.gwidth, vis.gheight, 0, 0, vis.gwidth, vis.gheight)
                 vis.tempCtx.translate(dw, 0)
             }
 
