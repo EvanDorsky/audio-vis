@@ -8,19 +8,15 @@ function binaryIndexOf(seEl) {
     var maxIndex = this.length - 1
     var cInd
     var curEl
-    var runningDiff = 10000
-    var diff = 0
     
     while (minIndex <= maxIndex) {
         cInd = (minIndex + maxIndex) / 2 | 0
         curEl = this[cInd]
 
-        if (curEl < seEl) {
+        if (curEl < seEl)
             minIndex = cInd + 1
-        }
-        else if (curEl > seEl) {
+        else if (curEl > seEl)
             maxIndex = cInd - 1
-        }
     }
 
     return cInd
@@ -88,33 +84,38 @@ strings.push(mMap.note('A4'))
 
 function keyEvent(e) {
     if (e.keyCode === 32) // spacebar
-        window.tro.roll(!window.tro.rolling)
+        window.activeVis.roll(!window.activeVis.rolling)
 
     if (e.keyCode === 108) // L key
-        window.tro.setLines()
+        window.activeVis.setLines()
 }
 
 function mouseDown(e) {
-    window.tro.cursor.down = true
+    window.activeVis.cursor.down = true
 
-    if (!window.tro.rolling)
-        window.tro.render()
+    if (!window.activeVis.rolling)
+        window.activeVis.render()
 }
 
 function mouseMove(e) {
-    window.tro.cursor.x = e.x
-    window.tro.cursor.y = e.y
+    window.activeVis.cursor.x = e.x
+    window.activeVis.cursor.y = e.y
 
-    if (!window.tro.rolling)
-        window.tro.render()
+    if (!window.activeVis.rolling)
+        window.activeVis.render()
 }
 
 function mouseUp(e) {
-    window.tro.cursor.down = false
+    window.activeVis.cursor.down = false
 
-    if (!window.tro.rolling)
-        window.tro.render()
+    if (!window.activeVis.rolling)
+        window.activeVis.render()
 }
+
+window.addEventListener('keypress', keyEvent, false)
+window.addEventListener('mousedown', mouseDown, false)
+window.addEventListener('mousemove', mouseMove, false)
+window.addEventListener('mouseup', mouseUp, false)
 
 window.onload = function() {
     window.dft = Module.cwrap('cdft', 'array', ['number', 'array'])
@@ -151,6 +152,7 @@ window.onload = function() {
         vis.canvas = document.createElement('canvas')
         vis.canvasCtx = vis.canvas.getContext('2d')
 
+        vis.cursor = {}
         vis.rolling = true
 
         vis.config = function(streamSource) {
@@ -252,17 +254,17 @@ window.onload = function() {
     var spectrum = function() {
         var vis = new visualizer()
 
-        vis.fftSize = 64
+        vis.fftSize = 512
         vis.smoothingTimeConstant = .7
 
         vis.draw = function() {
             vis.canvasCtx.fillStyle = 'black'
             vis.canvasCtx.fillRect(0, 0, vis.canvas.width, vis.canvas.height)
 
-            var barwidth = vis.canvas.width/vis.byteArray.length
-            for (var i = vis.byteArray.length - 1; i >= 0; i--) {
+            var barwidth = vis.canvas.width/vis.bytes.length
+            for (var i = vis.bytes.length - 1; i >= 0; i--) {
                 var x = i*barwidth+1
-                var y = vis.byteArray[i]/255.0
+                var y = vis.bytes[i]/10.0
                 vis.canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
                 vis.canvasCtx.fillRect(x, vis.canvas.height, barwidth-2, -y*vis.canvas.height)
             }
@@ -301,8 +303,6 @@ window.onload = function() {
         vis.logScale = false
         vis.lines = 0
 
-        vis.cursor = {}
-
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
             vis.analyser.fftSize = vis.fftSize
@@ -324,11 +324,6 @@ window.onload = function() {
             vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
 
             vis.render()
-
-            window.addEventListener('keypress', keyEvent, false)
-            window.addEventListener('mousedown', mouseDown, false)
-            window.addEventListener('mousemove', mouseMove, false)
-            window.addEventListener('mouseup', mouseUp, false)
 
             return vis
         }
@@ -474,8 +469,11 @@ window.onload = function() {
             function(stream) {
                 var streamSource = audioCtx.createMediaStreamSource(stream)
 
-                window.tro = new spectrogram()
-                window.tro.config(streamSource)
+                // window.tro = new spectrogram()
+                // window.tro.config(streamSource)
+
+                window.activeVis = new spectrum()
+                window.activeVis.config(streamSource)
 
                 // window.scope = new scope()
                 // window.scope.config(streamSource)
