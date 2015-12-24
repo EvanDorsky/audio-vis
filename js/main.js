@@ -185,9 +185,6 @@ window.onload = function() {
             var ptr = dft(vis.byteArray.length, vis.byteArray)
             vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
 
-            // console.log('vis.bytes')
-            // console.log(vis.bytes)
-
             if (vis.rolling) requestAnimationFrame(vis.render)
 
             vis.draw()
@@ -312,8 +309,13 @@ window.onload = function() {
 
             streamSource.connect(vis.analyser)
 
-            vis.canvas.width = 1440
-            vis.canvas.height = 900
+            vis.canvas.width = 800
+            vis.canvas.height = 400
+
+            vis.margin = 20
+
+            vis.gwidth = vis.canvas.width-vis.margin*2
+            vis.gheight = vis.canvas.height-vis.margin*2
 
             vis.tempCanvas.width = vis.canvas.width
             vis.tempCanvas.height = vis.canvas.height
@@ -343,27 +345,27 @@ window.onload = function() {
         vis.draw = function() {
             var dw = 3
 
-            vis.canvasCtx.fillStyle = 'black'
+            vis.canvasCtx.fillStyle = 'dodgerblue'
 
             vis.canvasCtx.fillRect(0, 0, vis.canvas.width, vis.canvas.height)
             vis.canvasCtx.drawImage(vis.tempCanvas, 0, 0)
 
-            var boxheight = vis.canvas.height/vis.bytes.length
+            var blen = vis.bytes.length
+            var boxheight = vis.gheight/blen
             var binwidth = audioCtx.sampleRate/vis.fftSize
-            var y = 0
 
             var freq0 = mMap.note('A2').Hz
-            var blen = vis.bytes.length
             var bin0 = Math.floor(freq0/audioCtx.sampleRate*blen*2)
 
-            var rightPadding = 50
-            var specWidth = vis.canvas.width-rightPadding
+            // var rightPadding = 50
+            // var specWidth = vis.gwidth-rightPadding
 
+            var y = 0
             var y0 = vis.yFromFreq(freq0)
-            var sfactor = vis.canvas.height/(vis.canvas.height-y0+25)
+            var sfactor = vis.gheight/(vis.gheight-y0+25)
 
             // draw spectrogram
-            for (var i = bin0; i < blen; i++) {
+            for (var i = 0; i < blen; i++) {
                 if (vis.logScale) {
                     boxheight = Math.log2((i+1)/i)*vis.scaleFactor
                     if (boxheight == Infinity)
@@ -377,88 +379,88 @@ window.onload = function() {
                 if (norm > .99) norm = .99
                 vis.canvasCtx.fillStyle = colormapFromNorm(norm)
 
-                vis.canvasCtx.fillRect(specWidth-dw, (vis.canvas.height-y)*sfactor,
-                    dw, -(boxheight+1)*sfactor)
+                vis.canvasCtx.fillRect(vis.margin+vis.gwidth-dw, vis.gheight+vis.margin-y,
+                    dw, -(boxheight+1))
             }
 
             if (vis.rolling) {
                 vis.tempCtx.translate(-dw, 0)
-                vis.tempCtx.drawImage(vis.canvas, 0, 0)
+                vis.tempCtx.drawImage(vis.canvas, vis.margin, vis.margin, vis.gwidth, vis.gheight)
                 vis.tempCtx.translate(dw, 0)
             }
 
-            vis.canvasCtx.font = '100 18px Open Sans'
-            vis.canvasCtx.textAlign = 'right'
-            vis.canvasCtx.textBaseline = 'middle'
+            // vis.canvasCtx.font = '100 18px Open Sans'
+            // vis.canvasCtx.textAlign = 'right'
+            // vis.canvasCtx.textBaseline = 'middle'
 
             // draw y ticks
-            if (vis.logScale) {
-                for (var j in As) {
-                    vis.canvasCtx.fillStyle = 'white'
-                    var note = As[j]
-                    vis.canvasCtx.fillText(note.name,
-                        vis.canvas.width-dw,
-                        (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
-                    vis.canvasCtx.fillRect(vis.canvas.width-rightPadding,
-                        (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
-                        rightPadding-30, 1)
+            // if (vis.logScale) {
+            //     for (var j in As) {
+            //         vis.canvasCtx.fillStyle = 'white'
+            //         var note = As[j]
+            //         vis.canvasCtx.fillText(note.name,
+            //             vis.canvas.width-dw,
+            //             (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
+            //         vis.canvasCtx.fillRect(vis.canvas.width-rightPadding,
+            //             (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
+            //             rightPadding-30, 1)
 
-                    if (vis.lines > 0) {
-                        vis.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
-                        vis.canvasCtx.fillRect(0, (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
-                            specWidth, 1)
-                    }
-                }
-            }
+            //         if (vis.lines > 0) {
+            //             vis.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
+            //             vis.canvasCtx.fillRect(0, (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
+            //                 specWidth, 1)
+            //         }
+            //     }
+            // }
 
-            vis.canvasCtx.textAlign = 'center'
-            vis.canvasCtx.textBaseline = 'bottom'
+            // vis.canvasCtx.textAlign = 'center'
+            // vis.canvasCtx.textBaseline = 'bottom'
 
-            // ticks every half second, 60Hz refresh rate
-            var tickSpacing = 30*dw
-            // draw x ticks
-            var tickX = specWidth
-            var specHeight = vis.canvas.height-43
-            var time = 0
-            while (tickX > 0) {
-                vis.canvasCtx.fillStyle = 'white'
-                vis.canvasCtx.fillText(time, tickX, vis.canvas.height)
-                vis.canvasCtx.fillRect(tickX-1, specHeight, 1, 20)
+            // // ticks every half second, 60Hz refresh rate
+            // var tickSpacing = 30*dw
+            // // draw x ticks
+            // var tickX = specWidth
+            // var specHeight = vis.canvas.height-43
+            // var time = 0
+            // while (tickX > 0) {
+            //     vis.canvasCtx.fillStyle = 'white'
+            //     vis.canvasCtx.fillText(time, tickX, vis.canvas.height)
+            //     vis.canvasCtx.fillRect(tickX-1, specHeight, 1, 20)
 
-                if (vis.lines === 2) {
-                    vis.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
-                    vis.canvasCtx.fillRect(tickX-1, 0, 1, specHeight)
-                }
+            //     if (vis.lines === 2) {
+            //         vis.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
+            //         vis.canvasCtx.fillRect(tickX-1, 0, 1, specHeight)
+            //     }
 
-                tickX -= tickSpacing
-                time += 0.5
-            }
+            //     tickX -= tickSpacing
+            //     time += 0.5
+            // }
 
-            vis.canvasCtx.fillStyle = 'white'
-            // draw cursor
-            if (vis.cursor.down) {
-                vis.canvasCtx.fillRect(0, vis.cursor.y, specWidth, 1)
-                vis.canvasCtx.fillRect(vis.cursor.x, 0, -1, specHeight)
+            // vis.canvasCtx.fillStyle = 'white'
+            // // draw cursor
+            // if (vis.cursor.down) {
+            //     vis.canvasCtx.fillRect(0, vis.cursor.y, specWidth, 1)
+            //     vis.canvasCtx.fillRect(vis.cursor.x, 0, -1, specHeight)
 
-                var yFromY = (vis.canvas.height - vis.cursor.y/sfactor)
+            //     var yFromY = (vis.canvas.height - vis.cursor.y/sfactor)
 
-                // draw nearest Y label
-                var nearest = mMap.nearest(vis.freqFromY(yFromY))
-                var nearY = vis.yFromFreq(nearest.Hz)
+            //     // draw nearest Y label
+            //     var nearest = mMap.nearest(vis.freqFromY(yFromY))
+            //     var nearY = vis.yFromFreq(nearest.Hz)
 
-                if (nearest) {
-                    vis.canvasCtx.fillStyle = 'white'
-                    vis.canvasCtx.textAlign = 'right'
-                    vis.canvasCtx.textBaseline = 'middle'
+            //     if (nearest) {
+            //         vis.canvasCtx.fillStyle = 'white'
+            //         vis.canvasCtx.textAlign = 'right'
+            //         vis.canvasCtx.textBaseline = 'middle'
 
-                    vis.canvasCtx.fillText(nearest.name,
-                        vis.canvas.width-dw,
-                        (vis.canvas.height-nearY)*sfactor)
-                    vis.canvasCtx.fillRect(vis.canvas.width-rightPadding,
-                        (vis.canvas.height-nearY)*sfactor,
-                        rightPadding-40, 1)
-                }
-            }
+            //         vis.canvasCtx.fillText(nearest.name,
+            //             vis.canvas.width-dw,
+            //             (vis.canvas.height-nearY)*sfactor)
+            //         vis.canvasCtx.fillRect(vis.canvas.width-rightPadding,
+            //             (vis.canvas.height-nearY)*sfactor,
+            //             rightPadding-40, 1)
+            //     }
+            // }
         }
 
         return vis

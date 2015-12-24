@@ -3,8 +3,8 @@ all: index.html js/bundle.js stylesheets/style.css js/fft.js
 index.html: jade/index.jade
 	jade jade/index.jade -o .
 
-js/bundle.js: js/main.js js/fft.js
-	browserify -t strictify js/main.js > js/bundle.js
+js/bundle.js: js/main.js
+	browserify js/main.js > js/bundle.js
 
 stylesheets/style.css: stylus/style.styl
 	stylus stylus/style.styl -o stylesheets

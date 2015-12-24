@@ -31,6 +31,7 @@ MONITOR=()
 MONITOR+=( "${PROJECT_DIR}" )
 MONITOR+=( "${PROJECT_DIR}/stylus" )
 MONITOR+=( "${PROJECT_DIR}/jade" )
+MONITOR+=( "${PROJECT_DIR}/js" )
  
 # This file will be used as a timestamp reference point.
 TIMESTAMP_FILE="/tmp/file-monitor-ts"
@@ -83,7 +84,7 @@ while [[ true ]] ; do
     # Only take action if there are new changes in this monitor cycle.
     if [[ "${UPDATES}" != "${LAST_UPDATES}" ]] ; then
  
-         make all
+         make
  
     fi
   fi
