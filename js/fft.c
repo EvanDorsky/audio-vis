@@ -61,10 +61,9 @@ __muldc3(double __a, double __b, double __c, double __d)
 
 
 typedef complex double cx;
-typedef unsigned char uchar;
 
 cx* dft(int, cx[]);
-uchar* cdft(int, uchar[]);
+char* cdft(int, char[]);
 
 double cmag(cx z) {
     return sqrt(creal(z)*creal(z) + cimag(z)*cimag(z));
@@ -89,15 +88,16 @@ cx* dft(int N, cx x[N]) {
     return X;
 }
 
-uchar* cdft(int N, uchar x[N]) {
-    uchar* X = (uchar*)malloc(N * sizeof(uchar));
+char* cdft(int N, char x[N/2]) {
+    char* X = (char*)malloc(N/2 * sizeof(char));
 
     cx Xk = 0;
-    for (int k = 0; k < N; k++) {
+    for (int k = 0; k < N/2; k++) { // only real inputs
         for (int n = 0; n < N; n++) {
-            Xk += ((x[n]-127)/255.0)*cexp(-I*2*M_PI*k*n/(N*1.0));
+            Xk += x[n]*cexp(-I*2*M_PI*k*n/(N*1.0));
         }
-        X[k] = (uchar)(cmag(Xk)*255);
+        X[k] = (char)(cmag(Xk)/N);
+        // printf("%f\n", cmag(Xk)/N);
         Xk = 0;
     }
 

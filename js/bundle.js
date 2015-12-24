@@ -1,5 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-"use strict";
 var colormap = require('colormap')
 
 // http://oli.me.uk/2013/06/08/searching-javascript-arrays-with-a-binary-search/
@@ -116,13 +115,15 @@ function mouseUp(e) {
         window.tro.render()
 }
 
-window.addEventListener('keypress', keyEvent, false)
-window.addEventListener('mousedown', mouseDown, false)
-window.addEventListener('mousemove', mouseMove, false)
-window.addEventListener('mouseup', mouseUp, false)
-
 window.onload = function() {
     window.dft = Module.cwrap('cdft', 'array', ['number', 'array'])
+
+    var sine351 = [0, 0.3681, 0.6845, 0.9048, 0.9980, 0.9511, 0.7705, 0.4818, 0.1253, -0.2487, -0.5878, -0.8443, -0.9823, -0.9823, -0.8443, -0.5878, -0.2487, 0.1253, 0.4818, 0.7705, 0.9511, 0.9980, 0.9048, 0.6845, 0.3681, 0.0000, -0.3681, -0.6845, -0.9048, -0.9980, -0.9511, -0.7705, -0.4818, -0.1253, 0.2487, 0.5878, 0.8443, 0.9823, 0.9823, 0.8443, 0.5878, 0.2487, -0.1253, -0.4818, -0.7705, -0.9511, -0.9980, -0.9048, -0.6845, -0.3681, 0]
+    sine351 = sine351.map(function(x) {
+        return x*127 | 0
+    })
+    var ptr = dft(sine351.length, sine351)
+    var bytes = Module.HEAP8.subarray(ptr, ptr+sine351.length/2)
 
     navigator.getUserMedia = (navigator.getUserMedia ||
                               navigator.webkitGetUserMedia ||
@@ -178,11 +179,70 @@ window.onload = function() {
             vis.analyser.getByteTimeDomainData(vis.byteArray)
 
             var ptr = dft(vis.byteArray.length, vis.byteArray)
-            vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
+            vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length/2)
+
+            // console.log('vis.bytes')
+            // console.log(vis.bytes)
 
             if (vis.rolling) requestAnimationFrame(vis.render)
 
             vis.draw()
+        }
+
+        return vis
+    }
+
+    var scope = function() {
+        var vis = this
+
+        vis = {}
+        vis.canvas = document.createElement('canvas')
+        vis.canvasCtx = vis.canvas.getContext('2d')
+
+        vis.rolling = true
+
+        vis.config = function(streamSource) {
+            vis.analyser = audioCtx.createAnalyser()
+            vis.analyser.minDecibels = -140
+            vis.analyser.maxDecibels = 0
+            vis.analyser.fftSize = 1024
+
+            streamSource.connect(vis.analyser)
+
+            vis.canvas.width = 1440
+            vis.canvas.height = 800
+
+            document.body.appendChild(vis.canvas)
+
+            vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
+
+            vis.roll(true)
+
+            return vis
+        }
+        vis.roll = function(rolling) {
+            vis.rolling = rolling
+
+            if (rolling) vis.render()
+        }
+        vis.render = function() {
+            vis.analyser.getByteTimeDomainData(vis.byteArray)
+
+            if (vis.rolling) requestAnimationFrame(vis.render)
+
+            vis.draw()
+        }
+        vis.draw = function() {
+            vis.canvasCtx.fillStyle = 'black'
+            vis.canvasCtx.fillRect(0, 0, vis.canvas.width, vis.canvas.height)
+
+            var barwidth = vis.canvas.width/vis.byteArray.length
+            for (var i = vis.byteArray.length - 1; i >= 0; i--) {
+                var x = i*barwidth+1
+                var y = vis.byteArray[i]/255.0
+                vis.canvasCtx.fillStyle = 'white'
+                vis.canvasCtx.fillRect(x, vis.canvas.height, barwidth-2, -y*vis.canvas.height)
+            }
         }
 
         return vis
@@ -232,7 +292,7 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = new visualizer()
 
-        vis.fftSize = 1024
+        vis.fftSize = 2048
         vis.smoothingTimeConstant = 0
         vis.tempCanvas = document.createElement('canvas')
         vis.tempCtx = vis.tempCanvas.getContext('2d')
@@ -264,6 +324,11 @@ window.onload = function() {
 
             vis.render()
 
+            window.addEventListener('keypress', keyEvent, false)
+            window.addEventListener('mousedown', mouseDown, false)
+            window.addEventListener('mousemove', mouseMove, false)
+            window.addEventListener('mouseup', mouseUp, false)
+
             return vis
         }
         vis.yFromFreq = function(freq) {
@@ -286,12 +351,12 @@ window.onload = function() {
             vis.canvasCtx.fillRect(0, 0, vis.canvas.width, vis.canvas.height)
             vis.canvasCtx.drawImage(vis.tempCanvas, 0, 0)
 
-            var boxheight = vis.canvas.height/vis.byteArray.length
+            var boxheight = vis.canvas.height/vis.bytes.length
             var binwidth = audioCtx.sampleRate/vis.fftSize
             var y = 0
 
             var freq0 = mMap.note('A2').Hz
-            var blen = vis.byteArray.length
+            var blen = vis.bytes.length
             var bin0 = Math.floor(freq0/audioCtx.sampleRate*blen*2)
 
             var rightPadding = 50
@@ -311,7 +376,8 @@ window.onload = function() {
                 }
                 else
                     y = i*boxheight
-                var norm = vis.bytes[i]/255.0
+                var norm = vis.bytes[i]/10
+                if (norm > .99) norm = .99
                 vis.canvasCtx.fillStyle = colormapFromNorm(norm)
 
                 vis.canvasCtx.fillRect(specWidth-dw, (vis.canvas.height-y)*sfactor,
@@ -408,7 +474,10 @@ window.onload = function() {
                 var streamSource = audioCtx.createMediaStreamSource(stream)
 
                 window.tro = new spectrogram()
-                tro.config(streamSource)
+                window.tro.config(streamSource)
+
+                // window.scope = new scope()
+                // window.scope.config(streamSource)
             },
             function(err) {
                 console.error(err)

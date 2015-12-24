@@ -1,6 +1,6 @@
 all: index.html js/bundle.js stylesheets/style.css js/fft.js
 
-index.html: jade/index.jade stylesheets/style.css
+index.html: jade/index.jade
 	jade jade/index.jade -o .
 
 js/bundle.js: js/main.js
