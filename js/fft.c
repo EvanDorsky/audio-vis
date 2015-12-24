@@ -3,43 +3,34 @@
 #include <complex.h>
 #include <math.h>
 
+typedef complex double cx;
+
 // http://opensource.apple.com/source/clang/clang-137/src/projects/compiler-rt/lib/muldc3.c
 double _Complex
 __muldc3(double __a, double __b, double __c, double __d);
+double cmag(cx z);
 
-typedef complex double cx;
+void gen_blackman(double, int, double*);
+void gen_hann(double, int, double*);
+void cwindow(int, char*);
 
-cx* dft(int, cx[]);
-char* cdft(int, char[]);
-char* cblackman(int N, char x[N]);
+char* cdft(int, char*);
 
-double cmag(cx z) {
-    return sqrt(creal(z)*creal(z) + cimag(z)*cimag(z));
-}
-
+double* g_window;
 int main(int argc, char const *argv[]) {
     return 0;
 }
 
-cx* dft(int N, cx x[N]) {
-    cx* X = (cx*)malloc(N * sizeof(cx));
-
-    cx Xk = 0;
-    for (int k = 0; k < N; k++) {
-        for (int n = 0; n < N; n++) {
-            Xk += x[n]*cexp(-I*2*M_PI*k*n/(N*1.0));
-        }
-        X[k] = Xk;
-        Xk = 0;
+_Bool window_done = 0;
+char* cdft(int N, char* x) {
+    if (!window_done) {
+        g_window = (double*)malloc(N * sizeof(double));
+        gen_blackman(0.16, N, g_window);
+        window_done = 1;
     }
-
-    return X;
-}
-
-char* cdft(int N, char x[N]) {
     char* X = (char*)malloc(N * sizeof(char));
 
-    x = cblackman(N, x);
+    cwindow(N, x);
 
     cx Xk = 0;
     for (int k = 0; k < N; k++) {
@@ -53,18 +44,31 @@ char* cdft(int N, char x[N]) {
     return X;
 }
 
-static const double a = 0.16;
-static const double a0 = (1-a)/2.0;
-static const double a1 = 0.5;
-static const double a2 = a/2;
-char* cblackman(int N, char x[N]) {
-    char* xb = (char*)malloc(N * sizeof(char));
+void gen_blackman(double a, int N, double* blackman) {
+    double a0 = (1-a)/2.0;
+    double a1 = 0.5;
+    double a2 = a/2;
 
     for (int n = 0; n < N; n++) {
-        xb[n] = x[n]*(a0 - a1*cos(2*M_PI*n/(N - 1.0)) + a2*cos(4*M_PI*n/(N - 1.0)));
+        blackman[n] = a0 - a1*cos(2*M_PI*n/(N - 1.0)) + a2*cos(4*M_PI*n/(N - 1.0));
     }
+}
 
-    return xb;
+void gen_hann(double a, int N, double* hann) {
+    for (int n = 0; n < N; n++) {
+        hann[n] = 0.5*(1 - cos(2*M_PI*n/(N - 1.0)));
+    }
+}
+
+// in-place windowing
+void cwindow(int N, char* x) {
+    for (int n = 0; n < N; n++) {
+        x[n] = (char)(x[n]*g_window[n]);
+    }
+}
+
+double cmag(cx z) {
+    return sqrt(creal(z)*creal(z) + cimag(z)*cimag(z));
 }
 
 double _Complex

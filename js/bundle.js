@@ -298,7 +298,7 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = new visualizer()
 
-        vis.fftSize = 2048
+        vis.fftSize = 256
         vis.smoothingTimeConstant = 0
         vis.tempCanvas = document.createElement('canvas')
         vis.tempCtx = vis.tempCanvas.getContext('2d')
