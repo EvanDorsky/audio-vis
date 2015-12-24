@@ -122,13 +122,7 @@ window.addEventListener('mousemove', mouseMove, false)
 window.addEventListener('mouseup', mouseUp, false)
 
 window.onload = function() {
-    var dft = Module.cwrap('cdft', 'array', ['number', 'array'])
-
-    var ptr = dft(6, [1, 2, 3, 4, 5, 6])
-    var bytes = Module.HEAP8.subarray(ptr, ptr+6)
-
-    console.log('bytes')
-    console.log(bytes)
+    window.dft = Module.cwrap('cdft', 'array', ['number', 'array'])
 
     navigator.getUserMedia = (navigator.getUserMedia ||
                               navigator.webkitGetUserMedia ||
@@ -181,7 +175,10 @@ window.onload = function() {
             if (rolling) vis.render()
         }
         vis.render = function() {
-            vis.analyser.getByteFrequencyData(vis.byteArray)
+            vis.analyser.getByteTimeDomainData(vis.byteArray)
+
+            var ptr = dft(vis.byteArray.length, vis.byteArray)
+            var bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
 
             if (vis.rolling) requestAnimationFrame(vis.render)
 
@@ -235,12 +232,12 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = new visualizer()
 
-        vis.fftSize = 4096
+        vis.fftSize = 128
         vis.smoothingTimeConstant = 0
         vis.tempCanvas = document.createElement('canvas')
         vis.tempCtx = vis.tempCanvas.getContext('2d')
 
-        vis.logScale = true
+        vis.logScale = false
         vis.lines = 0
 
         vis.cursor = {}
