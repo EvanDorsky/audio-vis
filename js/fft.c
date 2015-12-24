@@ -5,6 +5,53 @@
 
 // http://opensource.apple.com/source/clang/clang-137/src/projects/compiler-rt/lib/muldc3.c
 double _Complex
+__muldc3(double __a, double __b, double __c, double __d);
+
+typedef complex double cx;
+
+cx* dft(int, cx[]);
+char* cdft(int, char[]);
+
+double cmag(cx z) {
+    return sqrt(creal(z)*creal(z) + cimag(z)*cimag(z));
+}
+
+int main(int argc, char const *argv[]) {
+    return 0;
+}
+
+cx* dft(int N, cx x[N]) {
+    cx* X = (cx*)malloc(N * sizeof(cx));
+
+    cx Xk = 0;
+    for (int k = 0; k < N; k++) {
+        for (int n = 0; n < N; n++) {
+            Xk += x[n]*cexp(-I*2*M_PI*k*n/(N*1.0));
+        }
+        X[k] = Xk;
+        Xk = 0;
+    }
+
+    return X;
+}
+
+char* cdft(int N, char x[N/2]) {
+    char* X = (char*)malloc(N/2 * sizeof(char));
+
+    cx Xk = 0;
+    for (int k = 0; k < N/2; k++) { // only real inputs
+        for (int n = 0; n < N; n++) {
+            Xk += x[n]*cexp(-I*2*M_PI*k*n/(N*1.0));
+        }
+        X[k] = (char)(cmag(Xk)/N);
+        // printf("%f\n", cmag(Xk)/N);
+        Xk = 0;
+    }
+
+    return X;
+}
+
+double _Complex
 __muldc3(double __a, double __b, double __c, double __d)
 {
     double __ac = __a * __c;
@@ -57,49 +104,4 @@ __muldc3(double __a, double __b, double __c, double __d)
         }
     }
     return z;
-}
-
-
-typedef complex double cx;
-
-cx* dft(int, cx[]);
-char* cdft(int, char[]);
-
-double cmag(cx z) {
-    return sqrt(creal(z)*creal(z) + cimag(z)*cimag(z));
-}
-
-int main(int argc, char const *argv[]) {
-    return 0;
-}
-
-cx* dft(int N, cx x[N]) {
-    cx* X = (cx*)malloc(N * sizeof(cx));
-
-    cx Xk = 0;
-    for (int k = 0; k < N; k++) {
-        for (int n = 0; n < N; n++) {
-            Xk += x[n]*cexp(-I*2*M_PI*k*n/(N*1.0));
-        }
-        X[k] = Xk;
-        Xk = 0;
-    }
-
-    return X;
-}
-
-char* cdft(int N, char x[N/2]) {
-    char* X = (char*)malloc(N/2 * sizeof(char));
-
-    cx Xk = 0;
-    for (int k = 0; k < N/2; k++) { // only real inputs
-        for (int n = 0; n < N; n++) {
-            Xk += x[n]*cexp(-I*2*M_PI*k*n/(N*1.0));
-        }
-        X[k] = (char)(cmag(Xk)/N);
-        // printf("%f\n", cmag(Xk)/N);
-        Xk = 0;
-    }
-
-    return X;
 }
