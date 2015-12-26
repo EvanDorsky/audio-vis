@@ -5,7 +5,6 @@
 
 typedef complex double cx;
 
-// http://opensource.apple.com/source/clang/clang-137/src/projects/compiler-rt/lib/muldc3.c
 double _Complex
 __muldc3(double __a, double __b, double __c, double __d);
 double cmag(cx z);
@@ -15,13 +14,14 @@ void gen_hann(double, int, double*);
 void cwindow(int, char*);
 
 char* cdft(int, char*);
-void A(int, int, int, int, char*, char*);
+void A(int, int, int);
 
 double* g_window;
 int main(int argc, char const *argv[]) {
     return 0;
 }
 
+int m, l, _N;
 _Bool window_done = 0;
 char* cdft(int N, char* x) {
     if (!window_done) {
@@ -29,42 +29,28 @@ char* cdft(int N, char* x) {
         gen_blackman(0.16, N, g_window);
         window_done = 1;
     }
-    char* X = (char*)malloc(N * sizeof(char));
 
     cwindow(N, x);
 
-    // for (int j = 0; j < N; j++) {
-    //     for (int k = 0; k < N; k++) {
-    //         Xj += x[k]*cexp(-I*2*M_PI*j*k/(N*1.0));
-    //     }
-    //     X[j] = (char)(cmag(Xj)/N);
-    //     Xk = 0;
-    // }
+    m = (int)log2(N);
+    _N = N;
 
-    int m = (int)log2(N);
-    X = A(N, m, N-1, x, X);
+    X = A(m);
 
     return X;
 }
 
 
-cx W, twid;
-void A(int N, int m, int l, int k, char* x, char* X) {
-    W = cexp(2*I*M_PI/N);
-    int exponent = 0;
-
-    for (int j = 0; j < l; j++) {
-        exponent += j*(int)pow(2, j);
+cx W;
+void A(int l) {
+    if (l == 1) {
+        
     }
-    exponent *= (int)pow(2, m-l);
-    twid = cpow(W, exponent);
 
-    if (l < 2)
-        return x[k]; // base case (?)
-
-    X = A(N/2, m, l-1, k, x, X) + twid*A(N/2, m, l-1, k, x, X);
-
-    cx Xk = 0;
+    for (var kml = 0; kml < 2; kml++) {
+        X += A(l-1, js, ks);
+    }
+    return X;
 }
 
 void gen_blackman(double a, int N, double* blackman) {
@@ -98,6 +84,7 @@ double cmag(cx z) {
     return sqrt(creal(z)*creal(z) + cimag(z)*cimag(z));
 }
 
+// http://opensource.apple.com/source/clang/clang-137/src/projects/compiler-rt/lib/muldc3.c
 double _Complex
 __muldc3(double __a, double __b, double __c, double __d)
 {
