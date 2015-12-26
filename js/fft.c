@@ -14,14 +14,14 @@ void gen_hann(double, int, double*);
 void cwindow(int, char*);
 
 char* cdft(int, char*);
-void A(int, int, int);
+int A(int);
 
 double* g_window;
 int main(int argc, char const *argv[]) {
     return 0;
 }
 
-int m, l, _N;
+int m, l;
 _Bool window_done = 0;
 char* cdft(int N, char* x) {
     if (!window_done) {
@@ -33,23 +33,37 @@ char* cdft(int N, char* x) {
     cwindow(N, x);
 
     m = (int)log2(N);
-    _N = N;
 
-    X = A(m);
+    printf("Recursion starts\n======================\n");
+    int X = A(m);
+    printf("X = %i\n", X);
+    printf("======================\nRecursion ends\n");
 
-    return X;
+    char* ret = (char*)malloc(N * sizeof(char));
+
+    return ret;
 }
 
 
 cx W;
-void A(int l) {
-    if (l == 1) {
-        
+int A(int l) {
+    int X = 0;
+    for (int i = m-l; i-->0;) {printf("  ");}
+    printf("A_%i starting\n", l);
+
+    if (l < 2) {
+        for (int i = m-l; i-->0;) {printf("  ");}
+        printf("Returning 1\n");
+        return 1;
     }
 
-    for (var kml = 0; kml < 2; kml++) {
-        X += A(l-1, js, ks);
+    for (int kml = 0; kml < 2; kml++) {
+        for (int i = m-l; i-->0;) {printf("  ");}
+        printf("Spawning A_%i with k_m-l = %i\n", l-1, kml);
+        X += A(l-1);
     }
+    for (int i = m-l; i-->0;) {printf("  ");}
+    printf("Returning %i\n", X);
     return X;
 }
 
