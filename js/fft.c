@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <complex.h>
+#include <string.h>
 #include <math.h>
 
 typedef complex double cx;
 
-double _Complex
-__muldc3(double __a, double __b, double __c, double __d);
+double _Complex __muldc3(double, double, double, double);
 double cmag(cx z);
 
 void gen_blackman(double, int, double*);
@@ -14,7 +14,8 @@ void gen_hann(double, int, double*);
 void cwindow(int, char*);
 
 char* cdft(int, char*);
-cx A(int);
+cx A(int, int);
+int b2i(char*);
 
 double* g_window;
 int main(int argc, char const *argv[]) {
@@ -24,43 +25,54 @@ int main(int argc, char const *argv[]) {
 int m, l;
 cx W;
 _Bool window_done = 0;
+
+cx* X;
 char* cdft(int N, char* x) {
     if (!window_done) {
         g_window = (double*)malloc(N * sizeof(double));
         gen_blackman(0.16, N, g_window);
         window_done = 1;
     }
+    X = (cx*)malloc(N * sizeof(cx)); // shared memory for every stage of recursion
+    for (int i = 0; i < N; i++) {
+        X[i] = (cx)x[i];
+    } // put x into X
+
+    m = 5;
+    char bits[5] = {1, 1, 1, 1, 1};
+    printf("B2I: %i\n", b2i(bits));
 
     cwindow(N, x);
 
     m = (int)log2(N);
     W = cexp(2*M_PI/N*I);
 
-    printf("Recursion starts\n======================\n");
-    cx X = A(m);
-    printf("X = %f + %fi\n", creal(X), cimag(X));
-    printf("======================\nRecursion ends\n");
+    cx X = A(m, N);
 
     char* ret = (char*)malloc(N * sizeof(char));
 
     return ret;
 }
 
-cx A(int l) {
-    cx X = 0;
+// uses m
+int b2i(char* bits) {
+    int index = 0;
+
+    for (int i = m-1; i > -1; i--)
+        index += bits[i]<<i;
+
+    return index;
+}
+
+cx A(int l, int N) {
     for (int i = m-l; i-->0;) {printf("  ");}
     printf("A_%i starting\n", l);
 
     if (l < 2) {
-        for (int i = m-l; i-->0;) {printf("  ");}
-        printf("Returning 1\n");
         return 1;
     }
 
-    X += A(l-1) + W*A(l-1);
-    for (int i = m-l; i-->0;) {printf("  ");}
-    printf("Returning %f + %fi\n", creal(X), cimag(X));
-    return X;
+    return A(l-1, N) + W*A(l-1, N);
 }
 
 void gen_blackman(double a, int N, double* blackman) {

@@ -154,7 +154,7 @@ window.onload = function() {
         vis.canvasCtx = vis.canvas.getContext('2d')
 
         vis.cursor = {}
-        vis.rolling = true
+        vis.rolling = false
 
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
