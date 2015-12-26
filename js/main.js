@@ -305,7 +305,6 @@ window.onload = function() {
             vis.analyser = audioCtx.createAnalyser()
             vis.analyser.fftSize = vis.fftSize
             vis.analyser.smoothingTimeConstant = vis.smoothingTimeConstant
-            vis.analyser.minDecibels = -140
 
             streamSource.connect(vis.analyser)
 

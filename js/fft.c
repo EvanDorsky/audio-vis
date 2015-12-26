@@ -15,6 +15,7 @@ void gen_hann(double, int, double*);
 void cwindow(int, char*);
 
 char* cdft(int, char*);
+void A(int, int, char*, char*);
 
 double* g_window;
 int main(int argc, char const *argv[]) {
@@ -32,16 +33,30 @@ char* cdft(int N, char* x) {
 
     cwindow(N, x);
 
-    cx Xk = 0;
-    for (int k = 0; k < N; k++) {
-        for (int n = 0; n < N; n++) {
-            Xk += x[n]*cexp(-I*2*M_PI*k*n/(N*1.0));
-        }
-        X[k] = (char)(cmag(Xk)/N);
-        Xk = 0;
-    }
+    // for (int j = 0; j < N; j++) {
+    //     for (int k = 0; k < N; k++) {
+    //         Xj += x[k]*cexp(-I*2*M_PI*j*k/(N*1.0));
+    //     }
+    //     X[j] = (char)(cmag(Xj)/N);
+    //     Xk = 0;
+    // }
+
+    A(N, x, X);
 
     return X;
+}
+
+
+cx W;
+void A(int N, int l, char* x, char* X) {
+    W = cexp(2*I*M_PI/N);
+
+    if (l < 1)
+        return; // base case (?)
+
+    X = A(N/2, l-1 x, X) + cpow(W, )*A(N/2, l-1, x, X);
+
+    cx Xk = 0;
 }
 
 void gen_blackman(double a, int N, double* blackman) {
