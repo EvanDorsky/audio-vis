@@ -15,7 +15,7 @@ void gen_hann(double, int, double*);
 void cwindow(int, char*);
 
 char* cdft(int, char*);
-void A(int, int, char*, char*);
+void A(int, int, int, int, char*, char*);
 
 double* g_window;
 int main(int argc, char const *argv[]) {
@@ -41,20 +41,28 @@ char* cdft(int N, char* x) {
     //     Xk = 0;
     // }
 
-    A(N, x, X);
+    int m = (int)log2(N);
+    X = A(N, m, N-1, x, X);
 
     return X;
 }
 
 
-cx W;
-void A(int N, int l, char* x, char* X) {
+cx W, twid;
+void A(int N, int m, int l, int k, char* x, char* X) {
     W = cexp(2*I*M_PI/N);
+    int exponent = 0;
 
-    if (l < 1)
-        return; // base case (?)
+    for (int j = 0; j < l; j++) {
+        exponent += j*(int)pow(2, j);
+    }
+    exponent *= (int)pow(2, m-l);
+    twid = cpow(W, exponent);
 
-    X = A(N/2, l-1 x, X) + cpow(W, )*A(N/2, l-1, x, X);
+    if (l < 2)
+        return x[k]; // base case (?)
+
+    X = A(N/2, m, l-1, k, x, X) + twid*A(N/2, m, l-1, k, x, X);
 
     cx Xk = 0;
 }
