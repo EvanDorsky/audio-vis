@@ -118,15 +118,15 @@ window.addEventListener('mouseup', mouseUp, false)
 window.onload = function() {
     window.dft = Module.cwrap('cdft', 'array', ['number', 'array'])
 
-    var sine351 = [0, 0.3681, 0.6845, 0.9048, 0.9980, 0.9511, 0.7705, 0.4818, 0.1253, -0.2487, -0.5878, -0.8443, -0.9823, -0.9823, -0.8443, -0.5878, -0.2487, 0.1253, 0.4818, 0.7705, 0.9511, 0.9980, 0.9048, 0.6845, 0.3681, 0.0000, -0.3681, -0.6845, -0.9048, -0.9980, -0.9511, -0.7705, -0.4818, -0.1253, 0.2487, 0.5878, 0.8443, 0.9823, 0.9823, 0.8443, 0.5878, 0.2487, -0.1253, -0.4818, -0.7705, -0.9511, -0.9980, -0.9048, -0.6845, -0.3681, 0]
-    sine351 = sine351.map(function(x) {
+    var sine364 = [0, 0.3681, 0.6845, 0.9048, 0.9980, 0.9511, 0.7705, 0.4818, 0.1253, -0.2487, -0.5878, -0.8443, -0.9823, -0.9823, -0.8443, -0.5878, -0.2487, 0.1253, 0.4818, 0.7705, 0.9511, 0.9980, 0.9048, 0.6845, 0.3681, 0.0000, -0.3681, -0.6845, -0.9048, -0.9980, -0.9511, -0.7705, -0.4818, -0.1253, 0.2487, 0.5878, 0.8443, 0.9823, 0.9823, 0.8443, 0.5878, 0.2487, -0.1253, -0.4818, -0.7705, -0.9511, -0.9980, -0.9048, -0.6845, -0.3681, 0, 0.3681, 0.6845, 0.9048, 0.9980, 0.9511, 0.7705, 0.4818, 0.1253, -0.2487, -0.5878, -0.8443, -0.9823, -0.9823]
+    sine364 = sine364.map(function(x) {
         return x*127 | 0
     })
-    var ptr = dft(sine351.length, sine351)
-    var bytes = Module.HEAP8.subarray(ptr, ptr+sine351.length)
+    var ptr = dft(sine364.length, sine364)
+    var bytes = Module.HEAP8.subarray(ptr, ptr+sine364.length)
 
     console.log('bytes in')
-    console.log(sine351)
+    console.log(sine364)
     console.log('bytes out')
     console.log(bytes)
 
@@ -327,7 +327,7 @@ window.onload = function() {
 
             vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
 
-            vis.render()
+            // vis.render()
 
             return vis
         }

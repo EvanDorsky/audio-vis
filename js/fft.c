@@ -8,15 +8,14 @@ typedef complex double cx;
 
 double _Complex __muldc3(double, double, double, double);
 double cmag(cx z);
+void cprint(cx z);
 
 void gen_blackman(double, int, double*);
 void gen_hann(double, int, double*);
 void cwindow(int, char*);
 
 char* cdft(int, char*);
-cx A(int, char*, char*);
-int b2i(char*, int);
-int b2ijk(char*, char*, int);
+cx* fft(int, cx*);
 
 double* g_window;
 int main(int argc, char const *argv[]) {
@@ -24,81 +23,61 @@ int main(int argc, char const *argv[]) {
 }
 
 _Bool window_done = 0;
-int m, l;
-cx W;
-cx* X;
+cx _W;
+char* xmag;// windows data, sets basic constants
 char* cdft(int N, char* x) {
     if (!window_done) {
+        xmag = (char*)malloc(N * sizeof(char));
         g_window = (double*)malloc(N * sizeof(double));
         gen_blackman(0.16, N, g_window);
         window_done = 1;
     }
-    X = (cx*)malloc(N * sizeof(cx)); // shared memory for every stage of recursion
-    for (int i = 0; i < N; i++) {
-        X[i] = (cx)x[i];
-    } // put x into X
-
     cwindow(N, x);
 
-    m = (int)log2(N);
-    W = cexp(2*M_PI/N*I);
-    char* j = (char*)malloc(m * sizeof(char));
-    char* k = (char*)malloc(m * sizeof(char));
+    cx* xcx = (cx*)malloc(N * sizeof(cx));
+    for (int i = 0; i < N; i++) {
+        xcx[i] = (cx)x[i];
+    } // put x into X
 
-    cx X = A(m, j, k);
-    printf("Recursion done: %f + %fi\n", creal(X), cimag(X));
+    _W = cexp(2*M_PI/N*I);
 
-    char* ret = (char*)malloc(N * sizeof(char));
+    cx* X = fft(N, xcx);
 
-    return ret;
+    for (int i = 0; i < N; i++) {
+        xmag[i] = (char)cmag(X[i]);
+    } // get X mag from X
+
+    return xmag;
 }
 
-// little-endian
-int b2i(char* bits, int n) {
-    int index = 0;
+cx W;
+cx* fft(int N, cx* x) {
+    cx* e = (cx*)malloc(N/2 * sizeof(cx));
+    cx* o = (cx*)malloc(N/2 * sizeof(cx));
+    cx* X = (cx*)malloc(N * sizeof(cx));
 
-    for (int i = n-1; i > -1; i--)
-        index += bits[i]<<i;
-
-    return index;
-}
-
-int b2ijk(char* jbits, char* kbits, int l) {
-    int index = 0;
-
-    int pos = m - 1;
-    int v;
-    // j traversed 0 - l-1
-    for (v = 0; v < l; v++) {
-        index += jbits[v]<<pos;
-        pos--;
-    } // k traversed m-l-1 - 0
-    for (v = m-l-1; v > -1; v--) {
-        index += kbits[v]<<pos;
-        pos--;
+    for (int i = 0; i < N; i+=2) {
+        e[i/2] = x[i];
+        o[i/2] = x[i+1];
     }
 
-    return index;
-}
-
-cx A(int l, char* j, char* k) {
-    if (l < 2) {
-        // we've reached A_1, which uses A (the time domain signal)
-        // should return the sum of
-            // first half of A + second half of A
-            // and
-            // first half of A - second half of A
-        // (because the sum is over k_m-1, the MSB of k)
-        return 1;
+    cx* E;
+    cx* O;
+    if (N > 2) {
+        E = fft(N/2, e);
+        O = fft(N/2, o);
+    } else {
+        E = e;
+        O = o;
     }
 
-    W = cpow(W, b2i(j, l)*k[m-l]<<(m-l));
+    for (int j = 0; j < N/2; j++) {
+        W = cpow(_W, j);
+        X[ 2*j ] = E[j] + O[j]*W;
+        X[2*j+1] = E[j] - O[j]*W;
+    }
 
-    // the key: X[b2ijk(j, k, l)]
-    // b2ijk() returns the index of the element of X that we're calculating now
-    // in the paper, each j_v represents [0, 1] so that iterating through all of them iterates through 
-
-    return A(l-1, j, k) + W*A(l-1, j, k);
+    return X;
 }
 
 void gen_blackman(double a, int N, double* blackman) {
@@ -130,6 +109,10 @@ void cwindow(int N, char* x) {
 
 double cmag(cx z) {
     return sqrt(creal(z)*creal(z) + cimag(z)*cimag(z));
+}
+
+void cprint(cx z) {
+    printf("%f + %fi\n", creal(z), cimag(z));
 }
 
 // http://opensource.apple.com/source/clang/clang-137/src/projects/compiler-rt/lib/muldc3.c
