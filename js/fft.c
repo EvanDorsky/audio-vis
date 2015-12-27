@@ -40,11 +40,13 @@ char* cdft(int N, char* x) {
 
     cx* X = fft(N, xcx);
 
-    printf("Output\n");
+    // printf("Output\n");
     for (int i = 0; i < N; i++) {
-        cprint(X[i]);
+        // cprint(X[i]);
         xmag[i] = (char)cmag(X[i]);
     } // get X mag from X
+
+    free(X);
 
     return xmag;
 }
@@ -70,19 +72,14 @@ cx* fft(int N, cx* x) {
         O = o;
     }
 
-    printf("START LOOP\n");
     for (int j = 0; j < N/2; j++) {
         W = cexp(2*M_PI/N*I*j);
-        printf("W=");
-        cprint(W);
         X[ 2*j ] = E[j] + O[j]*W;
         X[2*j+1] = E[j] - O[j]*W;
-        printf("j=%i\n", j);
-        printf("E[j]=");
-        cprint(E[j]);
-        printf("O[j]=");
-        cprint(O[j]);
     }
+
+    free(e);
+    free(o);
 
     return X;
 }
