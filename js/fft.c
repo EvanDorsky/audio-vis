@@ -23,7 +23,6 @@ int main(int argc, char const *argv[]) {
 }
 
 _Bool window_done = 0;
-cx _W;
 char* xmag;// windows data, sets basic constants
 char* cdft(int N, char* x) {
     if (!window_done) {
@@ -39,11 +38,11 @@ char* cdft(int N, char* x) {
         xcx[i] = (cx)x[i];
     } // put x into X
 
-    _W = cexp(2*M_PI/N*I);
-
     cx* X = fft(N, xcx);
 
+    printf("Output\n");
     for (int i = 0; i < N; i++) {
+        cprint(X[i]);
         xmag[i] = (char)cmag(X[i]);
     } // get X mag from X
 
@@ -71,10 +70,18 @@ cx* fft(int N, cx* x) {
         O = o;
     }
 
+    printf("START LOOP\n");
     for (int j = 0; j < N/2; j++) {
-        W = cpow(_W, j);
+        W = cexp(2*M_PI/N*I*j);
+        printf("W=");
+        cprint(W);
         X[ 2*j ] = E[j] + O[j]*W;
         X[2*j+1] = E[j] - O[j]*W;
+        printf("j=%i\n", j);
+        printf("E[j]=");
+        cprint(E[j]);
+        printf("O[j]=");
+        cprint(O[j]);
     }
 
     return X;
