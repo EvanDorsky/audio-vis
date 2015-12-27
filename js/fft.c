@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <complex.h>
 #include <string.h>
 #include <math.h>
@@ -19,10 +20,32 @@ cx* fft(int, cx*);
 
 double* g_window;
 int main(int argc, char const *argv[]) {
+    clock_t start;
+    
+    int N = 1024;
+    char* input = (char*)malloc(N * sizeof(char));
+    for (int i = 0; i < N; i++) {
+        input[i] = i;
+    }
+    char* out;
+    
+    start = clock();
+    int i = 0;
+    while (i < 2000) {
+        if (clock() - start > CLOCKS_PER_SEC/120) {
+            out = cdft(N, input);
+            start = clock();
+            i++;
+            printf("It's happening!\n");
+        }
+    }
     return 0;
 }
 
 _Bool window_done = 0;
+cx* e;
+cx* o;
+cx* X;
 char* xmag;// windows data, sets basic constants
 char* cdft(int N, char* x) {
     if (!window_done) {
@@ -32,36 +55,38 @@ char* cdft(int N, char* x) {
         window_done = 1;
     }
     cwindow(N, x);
-
+    
     cx* xcx = (cx*)malloc(N * sizeof(cx));
     for (int i = 0; i < N; i++) {
         xcx[i] = (cx)x[i];
     } // put x into X
-
-    cx* X = fft(N, xcx);
-
+    
+    e = (cx*)malloc(N/2 * sizeof(cx));
+    o = (cx*)malloc(N/2 * sizeof(cx));
+    X = (cx*)malloc(N * sizeof(cx));
+    
+    X = fft(N, xcx);
+    
     // printf("Output\n");
     for (int i = 0; i < N; i++) {
         // cprint(X[i]);
         xmag[i] = (char)cmag(X[i]);
     } // get X mag from X
-
+    
     free(X);
-
+    free(e);
+    free(o);
+    free(xcx);
     return xmag;
 }
 
 cx W;
 cx* fft(int N, cx* x) {
-    cx* e = (cx*)malloc(N/2 * sizeof(cx));
-    cx* o = (cx*)malloc(N/2 * sizeof(cx));
-    cx* X = (cx*)malloc(N * sizeof(cx));
-
     for (int i = 0; i < N; i+=2) {
         e[i/2] = x[i];
         o[i/2] = x[i+1];
     }
-
+    
     cx* E;
     cx* O;
     if (N > 2) {
@@ -71,16 +96,13 @@ cx* fft(int N, cx* x) {
         E = e;
         O = o;
     }
-
+    
     for (int j = 0; j < N/2; j++) {
         W = cexp(2*M_PI/N*I*j);
         X[ 2*j ] = E[j] + O[j]*W;
         X[2*j+1] = E[j] - O[j]*W;
     }
-
-    free(e);
-    free(o);
-
+    
     return X;
 }
 
@@ -90,7 +112,7 @@ void gen_blackman(double a, int N, double* blackman) {
     double a0 = (1-a)/2.0;
     double a1 = 0.5;
     double a2 = a/2;
-
+    
     for (int n = 0; n < N; n++) {
         blackman[n] = a0 - a1*cos(2*M_PI*n/(N - 1.0)) + a2*cos(4*M_PI*n/(N - 1.0));
     }
@@ -98,7 +120,7 @@ void gen_blackman(double a, int N, double* blackman) {
 
 void gen_hann(double a, int N, double* hann) {
     N++;
-
+    
     for (int n = 0; n < N; n++) {
         hann[n] = 0.5*(1 - cos(2*M_PI*n/(N - 1.0)));
     }

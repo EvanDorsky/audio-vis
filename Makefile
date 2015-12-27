@@ -11,3 +11,9 @@ stylesheets/style.css: stylus/style.styl
 
 js/fft.js: js/fft.c
 	emcc js/fft.c -o js/fft.js -s EXPORTED_FUNCTIONS="['_cdft']"
+
+c: js/fft.c
+	gcc js/fft.c -o js/fft.o
+
+make runc: c
+	./js/fft.o
