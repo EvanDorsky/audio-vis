@@ -125,7 +125,9 @@ window.onload = function() {
     var ptr = dft(sine351.length, sine351)
     var bytes = Module.HEAP8.subarray(ptr, ptr+sine351.length)
 
-    console.log('bytes')
+    console.log('bytes in')
+    console.log(sine351)
+    console.log('bytes out')
     console.log(bytes)
 
     navigator.getUserMedia = (navigator.getUserMedia ||

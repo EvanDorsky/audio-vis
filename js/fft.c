@@ -14,18 +14,18 @@ void gen_hann(double, int, double*);
 void cwindow(int, char*);
 
 char* cdft(int, char*);
-cx A(int, int);
-int b2i(char*);
+cx A(int, char*, char*);
+int b2i(char*, int);
+int b2ijk(char*, char*, int);
 
 double* g_window;
 int main(int argc, char const *argv[]) {
     return 0;
 }
 
+_Bool window_done = 0;
 int m, l;
 cx W;
-_Bool window_done = 0;
-
 cx* X;
 char* cdft(int N, char* x) {
     if (!window_done) {
@@ -38,41 +38,67 @@ char* cdft(int N, char* x) {
         X[i] = (cx)x[i];
     } // put x into X
 
-    m = 5;
-    char bits[5] = {1, 1, 1, 1, 1};
-    printf("B2I: %i\n", b2i(bits));
-
     cwindow(N, x);
 
     m = (int)log2(N);
     W = cexp(2*M_PI/N*I);
+    char* j = (char*)malloc(m * sizeof(char));
+    char* k = (char*)malloc(m * sizeof(char));
 
-    cx X = A(m, N);
+    cx X = A(m, j, k);
+    printf("Recursion done: %f + %fi\n", creal(X), cimag(X));
 
     char* ret = (char*)malloc(N * sizeof(char));
 
     return ret;
 }
 
-// uses m
-int b2i(char* bits) {
+// little-endian
+int b2i(char* bits, int n) {
     int index = 0;
 
-    for (int i = m-1; i > -1; i--)
+    for (int i = n-1; i > -1; i--)
         index += bits[i]<<i;
 
     return index;
 }
 
-cx A(int l, int N) {
-    for (int i = m-l; i-->0;) {printf("  ");}
-    printf("A_%i starting\n", l);
+int b2ijk(char* jbits, char* kbits, int l) {
+    int index = 0;
 
+    int pos = m - 1;
+    int v;
+    // j traversed 0 - l-1
+    for (v = 0; v < l; v++) {
+        index += jbits[v]<<pos;
+        pos--;
+    } // k traversed m-l-1 - 0
+    for (v = m-l-1; v > -1; v--) {
+        index += kbits[v]<<pos;
+        pos--;
+    }
+
+    return index;
+}
+
+cx A(int l, char* j, char* k) {
     if (l < 2) {
+        // we've reached A_1, which uses A (the time domain signal)
+        // should return the sum of
+            // first half of A + second half of A
+            // and
+            // first half of A - second half of A
+        // (because the sum is over k_m-1, the MSB of k)
         return 1;
     }
 
-    return A(l-1, N) + W*A(l-1, N);
+    W = cpow(W, b2i(j, l)*k[m-l]<<(m-l));
+
+    // the key: X[b2ijk(j, k, l)]
+    // b2ijk() returns the index of the element of X that we're calculating now
+    // in the paper, each j_v represents [0, 1] so that iterating through all of them iterates through 
+
+    return A(l-1, j, k) + W*A(l-1, j, k);
 }
 
 void gen_blackman(double a, int N, double* blackman) {
