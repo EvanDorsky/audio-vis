@@ -54,7 +54,7 @@ char* cdft(int N, char* x) {
         gen_blackman(0.16, N, g_window);
         window_done = 1;
     }
-    cwindow(N, x);
+    // cwindow(N, x);
     
     cx* xcx = (cx*)malloc(N * sizeof(cx));
     for (int i = 0; i < N; i++) {
@@ -65,15 +65,15 @@ char* cdft(int N, char* x) {
     o = (cx*)malloc(N/2 * sizeof(cx));
     X = (cx*)malloc(N * sizeof(cx));
     
-    X = fft(N, xcx);
+    cx* Xr = fft(N, xcx);
     
     // printf("Output\n");
     for (int i = 0; i < N; i++) {
         // cprint(X[i]);
-        xmag[i] = (char)cmag(X[i]);
+        xmag[i] = (char)cmag(Xr[i]);
     } // get X mag from X
     
-    free(X);
+    free(Xr);
     free(e);
     free(o);
     free(xcx);
@@ -82,10 +82,22 @@ char* cdft(int N, char* x) {
 
 cx W;
 cx* fft(int N, cx* x) {
+    // printf("x before\n");
+    // for (int i = 0; i < N; i++) {
+    //     cprint(x[i]);
+    // }
     for (int i = 0; i < N; i+=2) {
         e[i/2] = x[i];
         o[i/2] = x[i+1];
     }
+    // printf("e after\n");
+    // for (int i = 0; i < N/2; i++) {
+    //     cprint(e[i]);
+    // }
+    // printf("o after\n");
+    // for (int i = 0; i < N/2; i++) {
+    //     cprint(o[i]);
+    // }
     
     cx* E;
     cx* O;
@@ -97,10 +109,19 @@ cx* fft(int N, cx* x) {
         O = o;
     }
     
-    for (int j = 0; j < N/2; j++) {
-        W = cexp(2*M_PI/N*I*j);
-        X[ 2*j ] = E[j] + O[j]*W;
-        X[2*j+1] = E[j] - O[j]*W;
+    printf("X before\n");
+    for (int i = 0; i < N; i++) {
+        cprint(X[i]);
+    }
+    // I don't _think_ there's anything wrong here
+    for (int j0 = 0; j0 < N/2; j0++) {
+        W = cexp(2*M_PI/N*I*j0);
+        X[ 2*j0 ] = E[j0] + O[j0]*W;
+        X[2*j0+1] = E[j0] - O[j0]*W;
+    }
+    printf("X after\n");
+    for (int i = 0; i < N; i++) {
+        cprint(X[i]);
     }
     
     return X;
