@@ -16,36 +16,40 @@ void gen_hann(double, int, double*);
 void cwindow(int, char*);
 
 char* cdft(int, char*);
-cx* fft(int, cx*);
+cx* fft(int, cx*, int, int);
 
 double* g_window;
 int main(int argc, char const *argv[]) {
-    clock_t start;
+//    clock_t start;
     
-    int N = 1024;
+    int N = 8;
     char* input = (char*)malloc(N * sizeof(char));
-    for (int i = 0; i < N; i++) {
-        input[i] = i;
-    }
+    input[0] = 2;
+    input[1] = 4;
+    input[2] = 6;
+    input[3] = 8;
+    input[4] = 9;
+    input[5] = 10;
+    input[6] = 11;
+    input[7] = 12;
     char* out;
     
-    start = clock();
-    int i = 0;
-    while (i < 2000) {
-        if (clock() - start > CLOCKS_PER_SEC/120) {
-            out = cdft(N, input);
-            start = clock();
-            i++;
-            printf("It's happening!\n");
-        }
-    }
+    out = cdft(8, input);
+    
+//    start = clock();
+//    int i = 0;
+//    while (i < 2000) {
+//        if (clock() - start > CLOCKS_PER_SEC/120) {
+//            out = cdft(N, input);
+//            start = clock();
+//            i++;
+//            printf("It's happening!\n");
+//        }
+//    }
     return 0;
 }
 
 _Bool window_done = 0;
-cx* e;
-cx* o;
-cx* X;
 char* xmag;// windows data, sets basic constants
 char* cdft(int N, char* x) {
     if (!window_done) {
@@ -61,11 +65,7 @@ char* cdft(int N, char* x) {
         xcx[i] = (cx)x[i];
     } // put x into X
     
-    e = (cx*)malloc(N/2 * sizeof(cx));
-    o = (cx*)malloc(N/2 * sizeof(cx));
-    X = (cx*)malloc(N * sizeof(cx));
-    
-    cx* Xr = fft(N, xcx);
+    cx* Xr = fft(N, xcx, 1, 0);
     
     // printf("Output\n");
     for (int i = 0; i < N; i++) {
@@ -74,54 +74,30 @@ char* cdft(int N, char* x) {
     } // get X mag from X
     
     free(Xr);
-    free(e);
-    free(o);
     free(xcx);
     return xmag;
 }
 
 cx W;
-cx* fft(int N, cx* x) {
-    // printf("x before\n");
-    // for (int i = 0; i < N; i++) {
-    //     cprint(x[i]);
-    // }
-    for (int i = 0; i < N; i+=2) {
-        e[i/2] = x[i];
-        o[i/2] = x[i+1];
-    }
-    // printf("e after\n");
-    // for (int i = 0; i < N/2; i++) {
-    //     cprint(e[i]);
-    // }
-    // printf("o after\n");
-    // for (int i = 0; i < N/2; i++) {
-    //     cprint(o[i]);
-    // }
+cx* fft(int N, cx* x, int stride, int offset) {
+    cx* X = (cx*)malloc(N * sizeof(cx));
     
     cx* E;
     cx* O;
     if (N > 2) {
-        E = fft(N/2, e);
-        O = fft(N/2, o);
+        E = fft(N/2, x, stride*2, offset);
+        O = fft(N/2, x, stride*2, offset+stride);
     } else {
-        E = e;
-        O = o;
+        X[0] = x[offset] + x[offset+stride];
+        X[1] = x[offset] - x[offset+stride];
+        
+        return X;
     }
     
-    printf("X before\n");
-    for (int i = 0; i < N; i++) {
-        cprint(X[i]);
-    }
-    // I don't _think_ there's anything wrong here
     for (int j0 = 0; j0 < N/2; j0++) {
         W = cexp(2*M_PI/N*I*j0);
         X[ 2*j0 ] = E[j0] + O[j0]*W;
         X[2*j0+1] = E[j0] - O[j0]*W;
-    }
-    printf("X after\n");
-    for (int i = 0; i < N; i++) {
-        cprint(X[i]);
     }
     
     return X;
