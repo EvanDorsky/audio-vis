@@ -108,6 +108,7 @@ cx* fft(int N, cx* x, int stride, int offset) {
     return X;
 }
 
+// appears to be good
 cx Wa(int N, int m, int l, int j) {
     cx w = cexp(2*M_PI/N*I);
     cx aW = 1;
@@ -115,7 +116,7 @@ cx Wa(int N, int m, int l, int j) {
     int btest;
     int b;
     for (int v = 0; v < l; v++) {
-        btest = 1 << (l-1-v);
+        btest = 1 << (m-1-v);
         b = 1 << v;
         aW *= cpow(w, ((j&btest)>>(l-1-v))*b);
     }
@@ -139,7 +140,9 @@ cx* A(int N, int m, int l, cx* x) {
     for (int jk = 0; jk < N; jk++) {
         W = Wa(N, m, l, jk);
         kmlcheck = ((jk&kmlbit)>>(m-l));
-        Al[jk] = Al1[jk]*(kmlcheck? W:1) + Al1[jk^kmlbit]*(kmlcheck? W:1);
+        Al[jk] = Al1[jk]*(kmlcheck? W:1);
+        kmlcheck = (((jk^kmlbit)&kmlbit)>>(m-l));
+        Al[jk] += Al1[jk^kmlbit]*(kmlcheck? W:1);
     }
     
     return Al;
