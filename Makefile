@@ -10,7 +10,7 @@ stylesheets/style.css: stylus/style.styl
 	stylus stylus/style.styl -o stylesheets
 
 js/fft.js: js/fft.c
-	emcc js/fft.c -o js/fft.js -s EXPORTED_FUNCTIONS="['_cdft']"
+	emcc js/fft.c -o js/fft.js -s EXPORTED_FUNCTIONS="['_setN', '_dft', '_fft']"
 
 c: js/fft.c
 	gcc js/fft.c -o js/fft.o

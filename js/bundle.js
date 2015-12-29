@@ -117,7 +117,9 @@ window.addEventListener('mousemove', mouseMove, false)
 window.addEventListener('mouseup', mouseUp, false)
 
 window.onload = function() {
-    window.dft = Module.cwrap('cdft', 'array', ['number', 'array'])
+    window.dft = Module.cwrap('dft', 'array', ['array'])
+    window.fft = Module.cwrap('fft', 'array', ['array'])
+    window.setN = Module.cwrap('setN', null, ['number'])
 
     var sine364 = [0, 0.3681, 0.6845, 0.9048, 0.9980, 0.9511, 0.7705, 0.4818, 0.1253, -0.2487, -0.5878, -0.8443, -0.9823, -0.9823, -0.8443, -0.5878, -0.2487, 0.1253, 0.4818, 0.7705, 0.9511, 0.9980, 0.9048, 0.6845, 0.3681, 0.0000, -0.3681, -0.6845, -0.9048, -0.9980, -0.9511, -0.7705, -0.4818, -0.1253, 0.2487, 0.5878, 0.8443, 0.9823, 0.9823, 0.8443, 0.5878, 0.2487, -0.1253, -0.4818, -0.7705, -0.9511, -0.9980, -0.9048, -0.6845, -0.3681, 0, 0.3681, 0.6845, 0.9048, 0.9980, 0.9511, 0.7705, 0.4818, 0.1253, -0.2487, -0.5878, -0.8443, -0.9823, -0.9823]
 
@@ -125,7 +127,8 @@ window.onload = function() {
         return x*127 | 0
     })
     sine364 = [2, 4, 6, 8, 9, 10, 11, 12, 2, 4, 6, 8, 9, 10, 11, 12]
-    var ptr = dft(sine364.length, sine364)
+    setN(sine364.length)
+    var ptr = fft(sine364)
     var bytes = Module.HEAP8.subarray(ptr, ptr+sine364.length)
 
     console.log('bytes in')
@@ -186,7 +189,7 @@ window.onload = function() {
         }
         vis.render = function() {
             vis.analyser.getByteTimeDomainData(vis.byteArray)
-            var ptr = dft(vis.byteArray.length, vis.byteArray)
+            var ptr = fft(vis.byteArray)
             vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
 
             // vis.analyser.getByteFrequencyData(vis.byteArray)
@@ -311,6 +314,9 @@ window.onload = function() {
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
             vis.analyser.fftSize = vis.fftSize
+            console.log('setting N')
+            console.log(vis.analyser.fftSize/2)
+            setN(vis.analyser.fftSize/2);
             vis.analyser.smoothingTimeConstant = vis.smoothingTimeConstant
 
             streamSource.connect(vis.analyser)
