@@ -9,11 +9,11 @@ js/bundle.js: js/main.js
 stylesheets/style.css: stylus/style.styl
 	stylus stylus/style.styl -o stylesheets
 
-js/fft.js: js/fft.c
-	emcc js/fft.c -o js/fft.js -s EXPORTED_FUNCTIONS="['_setN', '_dft', '_fft']"
+js/fft.js: c
+	emcc c/fft.c -o js/fft.js -s EXPORTED_FUNCTIONS="['_setN', '_dft', '_fft']"
 
-c: js/fft.c
-	gcc js/fft.c -o js/fft.o
+c: c/fft.c
+	gcc c/fft.c -o js/fft.o
 
 make runc: c
 	./js/fft.o

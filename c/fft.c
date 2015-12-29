@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <complex.h>
 #include <string.h>
 #include <math.h>
@@ -46,10 +45,6 @@ void setN(int _N) {
 
     g_window = (double*)malloc(N * sizeof(double));
     gen_blackman(0.16, g_window);
-}
-
-int main(int argc, char const *argv[]) {
-    return 0;
 }
 
 char* fft(char* x) {
