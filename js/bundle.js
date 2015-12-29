@@ -185,10 +185,12 @@ window.onload = function() {
             if (rolling) vis.render()
         }
         vis.render = function() {
-            vis.analyser.getByteTimeDomainData(vis.byteArray)
+            // vis.analyser.getByteTimeDomainData(vis.byteArray)
+            vis.analyser.getByteFrequencyData(vis.byteArray)
 
-            var ptr = dft(vis.byteArray.length, vis.byteArray)
-            vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
+            // var ptr = dft(vis.byteArray.length, vis.byteArray)
+            // vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
+            vis.bytes = vis.byteArray;
 
             if (vis.rolling) requestAnimationFrame(vis.render)
 
@@ -267,7 +269,7 @@ window.onload = function() {
             var barwidth = vis.canvas.width/vis.bytes.length
             for (var i = vis.bytes.length - 1; i >= 0; i--) {
                 var x = i*barwidth+1
-                var y = vis.bytes[i]/10.0
+                var y = vis.bytes[i]/255.0
                 vis.canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
                 vis.canvasCtx.fillRect(x, vis.canvas.height, barwidth-2, -y*vis.canvas.height)
             }
@@ -379,7 +381,7 @@ window.onload = function() {
                 }
                 else
                     y = i*boxheight
-                var norm = vis.bytes[i]/10.0
+                var norm = vis.bytes[i]/255.0
                 vis.canvasCtx.fillStyle = colormapFromNorm(norm)
 
                 vis.canvasCtx.fillRect(vis.margin+vis.gwidth-dw, vis.gheight+vis.margin-y,
