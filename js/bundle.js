@@ -124,7 +124,7 @@ window.onload = function() {
     sine364 = sine364.map(function(x) {
         return x*127 | 0
     })
-    sine364 = [2, 4, 6, 8, 9, 10, 11, 12]
+    sine364 = [2, 4, 6, 8, 9, 10, 11, 12, 2, 4, 6, 8, 9, 10, 11, 12]
     var ptr = dft(sine364.length, sine364)
     var bytes = Module.HEAP8.subarray(ptr, ptr+sine364.length)
 
@@ -298,7 +298,7 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = new visualizer()
 
-        vis.fftSize = 256
+        vis.fftSize = 1024
         vis.smoothingTimeConstant = 0
         vis.tempCanvas = document.createElement('canvas')
         vis.tempCtx = vis.tempCanvas.getContext('2d')
@@ -379,8 +379,7 @@ window.onload = function() {
                 }
                 else
                     y = i*boxheight
-                var norm = vis.bytes[i]/10
-                if (norm > .99) norm = .99
+                var norm = vis.bytes[i]/100.0
                 vis.canvasCtx.fillStyle = colormapFromNorm(norm)
 
                 vis.canvasCtx.fillRect(vis.margin+vis.gwidth-dw, vis.gheight+vis.margin-y,

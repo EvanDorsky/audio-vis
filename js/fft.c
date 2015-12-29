@@ -4,6 +4,7 @@
 #include <complex.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 
 typedef complex double cx;
 
@@ -19,24 +20,21 @@ char* cdft(int, char*);
 cx* fft(int, cx*, int, int);
 cx* A(int, int, int, cx*);
 
+// http://graphics.stanford.edu/~seander/bithacks.html#BitReverseObvious
+unsigned int revbits(unsigned int v, unsigned int m) {
+    unsigned int r = v;
+    unsigned int mask = 0xffffffff >> (sizeof(unsigned int)* CHAR_BIT - m);
+
+    for (v >>= 1; v; v >>= 1){   
+        r <<= 1;
+        r |= v & 1;
+    }
+
+    return (r & mask);
+}
+
 double* g_window;
 int main(int argc, char const *argv[]) {
-    //    clock_t start;
-    
-    int N = 8;
-    char* input = (char*)malloc(N * sizeof(char));
-    input[0] = 2;
-    input[1] = 4;
-    input[2] = 6;
-    input[3] = 8;
-    input[4] = 9;
-    input[5] = 10;
-    input[6] = 11;
-    input[7] = 12;
-    char* out;
-    
-    out = cdft(8, input);
-    
     return 0;
 }
 
@@ -56,11 +54,23 @@ char* cdft(int N, char* x) {
         xcx[i] = (cx)x[i];
     // put x into X
     
-    cx* Xr = A(N, log2(N), log2(N), xcx);
+    int m = log2(N);
+    cx* Xr = A(N, m, m, xcx);
     
     for (int i = 0; i < N; i++)
         xmag[i] = (char)cmag(Xr[i]);
     // get X mag from X
+
+    // bit reverse xmag
+    unsigned int j = 0;
+    for (unsigned int i = 0; i < N; i++) {
+        j = revbits(i, m);
+        if (i > j) {
+            char tmp = xmag[i];
+            xmag[i] = xmag[j];
+            xmag[j] = tmp;
+        }
+    }
     
     free(Xr);
     free(xcx);
