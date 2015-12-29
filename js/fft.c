@@ -37,16 +37,6 @@ int main(int argc, char const *argv[]) {
     
     out = cdft(8, input);
     
-    //    start = clock();
-    //    int i = 0;
-    //    while (i < 2000) {
-    //        if (clock() - start > CLOCKS_PER_SEC/120) {
-    //            out = cdft(N, input);
-    //            start = clock();
-    //            i++;
-    //            printf("It's happening!\n");
-    //        }
-    //    }
     return 0;
 }
 
@@ -59,53 +49,22 @@ char* cdft(int N, char* x) {
         gen_blackman(0.16, N, g_window);
         window_done = 1;
     }
-    // cwindow(N, x);
+    cwindow(N, x);
     
     cx* xcx = (cx*)malloc(N * sizeof(cx));
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++)
         xcx[i] = (cx)x[i];
-    } // put x into X
+    // put x into X
     
-//    cx* Xr = fft(N, xcx, 1, 0);
     cx* Xr = A(N, log2(N), log2(N), xcx);
     
-    // printf("Output\n");
-    for (int i = 0; i < N; i++) {
-        // cprint(X[i]);
+    for (int i = 0; i < N; i++)
         xmag[i] = (char)cmag(Xr[i]);
-    } // get X mag from X
+    // get X mag from X
     
     free(Xr);
     free(xcx);
     return xmag;
-}
-
-cx W;
-cx Wj0;
-
-cx* fft(int N, cx* x, int stride, int offset) {
-    cx* X = (cx*)malloc(N * sizeof(cx));
-    
-    cx* E;
-    cx* O;
-    if (N > 2) {
-        E = fft(N/2, x, stride*2, offset);
-        O = fft(N/2, x, stride*2, offset+stride);
-    } else {
-        X[0] = x[offset] + x[offset+stride];
-        X[1] = x[offset] - x[offset+stride];
-        
-        return X;
-    }
-    
-    W = cexp(2*M_PI/N*I);
-    for (int j0 = 0; j0 < N/2; j0++) {
-        Wj0 = cpow(W, j0);
-        X[ 2*j0 ] = E[j0] + O[j0]*Wj0;
-        X[2*j0+1] = E[j0] - O[j0]*Wj0*cpow(W, 2);
-    }
-    
-    return X;
 }
 
 // appears to be good
@@ -125,16 +84,16 @@ cx Wa(int N, int m, int l, int j) {
 
 cx* Al1;
 cx Wjk;
+cx W;
 int kmlbit;
 int kmlcheck;
 cx* A(int N, int m, int l, cx* x) {
     cx* Al = (cx*)malloc(N * sizeof(cx));
     
-    if (l > 1) {
+    if (l > 1)
         Al1 = A(N, m, l-1, x);
-    } else {
+    else
         Al1 = x;
-    }
     
     kmlbit = 1 << (m-l);
     for (int jk = 0; jk < N; jk++) {
