@@ -117,8 +117,8 @@ window.addEventListener('mousemove', mouseMove, false)
 window.addEventListener('mouseup', mouseUp, false)
 
 window.onload = function() {
-    window.dft = Module.cwrap('dft', 'array', ['array'])
     window.fft = Module.cwrap('fft', 'array', ['array'])
+    window.dft = Module.cwrap('dft', 'array', ['array'])
     window.setN = Module.cwrap('setN', null, ['number'])
 
     var sine364 = [0, 0.3681, 0.6845, 0.9048, 0.9980, 0.9511, 0.7705, 0.4818, 0.1253, -0.2487, -0.5878, -0.8443, -0.9823, -0.9823, -0.8443, -0.5878, -0.2487, 0.1253, 0.4818, 0.7705, 0.9511, 0.9980, 0.9048, 0.6845, 0.3681, 0.0000, -0.3681, -0.6845, -0.9048, -0.9980, -0.9511, -0.7705, -0.4818, -0.1253, 0.2487, 0.5878, 0.8443, 0.9823, 0.9823, 0.8443, 0.5878, 0.2487, -0.1253, -0.4818, -0.7705, -0.9511, -0.9980, -0.9048, -0.6845, -0.3681, 0, 0.3681, 0.6845, 0.9048, 0.9980, 0.9511, 0.7705, 0.4818, 0.1253, -0.2487, -0.5878, -0.8443, -0.9823, -0.9823]
@@ -303,7 +303,7 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = new visualizer()
 
-        vis.fftSize = 256
+        vis.fftSize = 1024
         vis.smoothingTimeConstant = 0
         vis.tempCanvas = document.createElement('canvas')
         vis.tempCtx = vis.tempCanvas.getContext('2d')
