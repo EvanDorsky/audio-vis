@@ -185,12 +185,12 @@ window.onload = function() {
             if (rolling) vis.render()
         }
         vis.render = function() {
-            // vis.analyser.getByteTimeDomainData(vis.byteArray)
-            vis.analyser.getByteFrequencyData(vis.byteArray)
+            vis.analyser.getByteTimeDomainData(vis.byteArray)
+            var ptr = dft(vis.byteArray.length, vis.byteArray)
+            vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
 
-            // var ptr = dft(vis.byteArray.length, vis.byteArray)
-            // vis.bytes = Module.HEAP8.subarray(ptr, ptr+vis.byteArray.length)
-            vis.bytes = vis.byteArray;
+            // vis.analyser.getByteFrequencyData(vis.byteArray)
+            // vis.bytes = vis.byteArray;
 
             if (vis.rolling) requestAnimationFrame(vis.render)
 
@@ -249,7 +249,7 @@ window.onload = function() {
                 var x = i*barwidth+1
                 var y = vis.byteArray[i]/255.0
                 vis.canvasCtx.fillStyle = 'white'
-                vis.canvasCtx.fillRect(x, vis.canvas.height, barwidth-2, -y*vis.canvas.height)
+                vis.canvasCtx.fillRect(x, vis.canvas.height, barwidth+.75, -y*vis.canvas.height)
             }
         }
 
@@ -269,7 +269,7 @@ window.onload = function() {
             var barwidth = vis.canvas.width/vis.bytes.length
             for (var i = vis.bytes.length - 1; i >= 0; i--) {
                 var x = i*barwidth+1
-                var y = vis.bytes[i]/255.0
+                var y = vis.bytes[i]/25.0
                 vis.canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
                 vis.canvasCtx.fillRect(x, vis.canvas.height, barwidth-2, -y*vis.canvas.height)
             }
@@ -351,7 +351,7 @@ window.onload = function() {
         vis.draw = function() {
             var dw = 3
 
-            vis.canvasCtx.fillStyle = 'dodgerblue'
+            vis.canvasCtx.fillStyle = 'black'
 
             vis.canvasCtx.fillRect(0, 0, vis.canvas.width, vis.canvas.height)
             vis.canvasCtx.drawImage(vis.tempCanvas, 0, 0, vis.gwidth, vis.gheight, vis.margin, vis.margin, vis.gwidth, vis.gheight)
@@ -381,7 +381,7 @@ window.onload = function() {
                 }
                 else
                     y = i*boxheight
-                var norm = vis.bytes[i]/255.0
+                var norm = vis.bytes[i]/25.0
                 vis.canvasCtx.fillStyle = colormapFromNorm(norm)
 
                 vis.canvasCtx.fillRect(vis.margin+vis.gwidth-dw, vis.gheight+vis.margin-y,
@@ -483,8 +483,8 @@ window.onload = function() {
                 // window.activeVis = new spectrum()
                 // window.activeVis.config(streamSource)
 
-                // window.scope = new scope()
-                // window.scope.config(streamSource)
+                // window.activeVis = new scope()
+                // window.activeVis.config(streamSource)
             },
             function(err) {
                 console.error(err)
