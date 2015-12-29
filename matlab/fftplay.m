@@ -1,9 +1,10 @@
 clear all;
 clc;
 
-A = [2, 4, 6, 8, 9, 10, 11, 12];
+A = [2, 4, 6, 8, 9, 10, 11, 12, 2, 4, 6, 8, 9, 10, 11, 12];
 
-Xmat = fft(A)'
+Xmat = fft(A)';
+abs(Xmat)
 X = [
     62,
     -6,
@@ -13,13 +14,13 @@ X = [
     -(7-sqrt(2)) - (5-5*sqrt(2))*i,
     -(7-sqrt(2)) + (5-5*sqrt(2))*i,
     -(7+sqrt(2)) + (5+5*sqrt(2))*i
-]
+];
 Xrev = X';
 Xrev(2) = X(5);
 Xrev(5) = X(2);
 Xrev(4) = X(7);
 Xrev(7) = X(4);
-Xrev'
+abs(Xrev');
 
 clf
 hold on
