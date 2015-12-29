@@ -50,15 +50,17 @@ char* cdft(int N, char* x) {
     cwindow(N, x);
     
     cx* xcx = (cx*)malloc(N * sizeof(cx));
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < N; i++) {
         xcx[i] = (cx)x[i];
+    }
     // put x into X
     
     int m = log2(N);
     cx* Xr = A(N, m, m, xcx);
     
-    for (int i = 0; i < N; i++)
-        xmag[i] = (char)cmag(Xr[i]);
+    for (int i = 0; i < N; i++) {
+        xmag[i] = (char)(cmag(Xr[i])/N);
+    }
     // get X mag from X
 
     // bit reverse xmag
@@ -73,7 +75,6 @@ char* cdft(int N, char* x) {
     }
     
     free(Xr);
-    free(xcx);
     return xmag;
 }
 
@@ -113,7 +114,8 @@ cx* A(int N, int m, int l, cx* x) {
         kmlcheck = (((jk^kmlbit)&kmlbit)>>(m-l));
         Al[jk] += Al1[jk^kmlbit]*(kmlcheck? W:1);
     }
-    
+
+    free(Al1);
     return Al;
 }
 
