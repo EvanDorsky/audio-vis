@@ -17,10 +17,11 @@ void cwindow(int, char*);
 
 char* cdft(int, char*);
 cx* fft(int, cx*, int, int);
+cx* A(int, int, int, cx*);
 
 double* g_window;
 int main(int argc, char const *argv[]) {
-//    clock_t start;
+    //    clock_t start;
     
     int N = 8;
     char* input = (char*)malloc(N * sizeof(char));
@@ -36,16 +37,16 @@ int main(int argc, char const *argv[]) {
     
     out = cdft(8, input);
     
-//    start = clock();
-//    int i = 0;
-//    while (i < 2000) {
-//        if (clock() - start > CLOCKS_PER_SEC/120) {
-//            out = cdft(N, input);
-//            start = clock();
-//            i++;
-//            printf("It's happening!\n");
-//        }
-//    }
+    //    start = clock();
+    //    int i = 0;
+    //    while (i < 2000) {
+    //        if (clock() - start > CLOCKS_PER_SEC/120) {
+    //            out = cdft(N, input);
+    //            start = clock();
+    //            i++;
+    //            printf("It's happening!\n");
+    //        }
+    //    }
     return 0;
 }
 
@@ -65,7 +66,8 @@ char* cdft(int N, char* x) {
         xcx[i] = (cx)x[i];
     } // put x into X
     
-    cx* Xr = fft(N, xcx, 1, 0);
+//    cx* Xr = fft(N, xcx, 1, 0);
+    cx* Xr = A(N, log2(N), log2(N), xcx);
     
     // printf("Output\n");
     for (int i = 0; i < N; i++) {
@@ -79,6 +81,8 @@ char* cdft(int N, char* x) {
 }
 
 cx W;
+cx Wj0;
+
 cx* fft(int N, cx* x, int stride, int offset) {
     cx* X = (cx*)malloc(N * sizeof(cx));
     
@@ -94,13 +98,51 @@ cx* fft(int N, cx* x, int stride, int offset) {
         return X;
     }
     
+    W = cexp(2*M_PI/N*I);
     for (int j0 = 0; j0 < N/2; j0++) {
-        W = cexp(2*M_PI/N*I*j0);
-        X[ 2*j0 ] = E[j0] + O[j0]*W;
-        X[2*j0+1] = E[j0] - O[j0]*W;
+        Wj0 = cpow(W, j0);
+        X[ 2*j0 ] = E[j0] + O[j0]*Wj0;
+        X[2*j0+1] = E[j0] - O[j0]*Wj0*cpow(W, 2);
     }
     
     return X;
+}
+
+cx Wa(int N, int m, int l, int j) {
+    cx w = cexp(2*M_PI/N*I);
+    cx aW = 1;
+    
+    int btest;
+    int b;
+    for (int v = 0; v < l; v++) {
+        btest = 1 << (l-1-v);
+        b = 1 << v;
+        aW *= cpow(w, ((j&btest)>>(l-1-v))*b);
+    }
+    return aW;
+}
+
+cx* Al1;
+cx Wjk;
+int kmlbit;
+int kmlcheck;
+cx* A(int N, int m, int l, cx* x) {
+    cx* Al = (cx*)malloc(N * sizeof(cx));
+    
+    if (l > 1) {
+        Al1 = A(N, m, l-1, x);
+    } else {
+        Al1 = x;
+    }
+    
+    kmlbit = 1 << (m-l);
+    for (int jk = 0; jk < N; jk++) {
+        W = Wa(N, m, l, jk);
+        kmlcheck = ((jk&kmlbit)>>(m-l));
+        Al[jk] = Al1[jk]*(kmlcheck? W:1) + Al1[jk^kmlbit]*(kmlcheck? W:1);
+    }
+    
+    return Al;
 }
 
 void gen_blackman(double a, int N, double* blackman) {
