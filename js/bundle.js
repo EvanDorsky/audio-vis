@@ -225,7 +225,7 @@ window.onload = function() {
 
             document.body.appendChild(vis.canvas)
 
-            vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
+            vis.byteArray = new Uint8Array(vis.analyser.fftSize)
 
             vis.roll(true)
 
@@ -303,7 +303,7 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = new visualizer()
 
-        vis.fftSize = 1024
+        vis.fftSize = 512
         vis.smoothingTimeConstant = 0
         vis.tempCanvas = document.createElement('canvas')
         vis.tempCtx = vis.tempCanvas.getContext('2d')
@@ -314,7 +314,7 @@ window.onload = function() {
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
             vis.analyser.fftSize = vis.fftSize
-            setN(vis.analyser.fftSize/2);
+            setN(vis.analyser.fftSize);
             
             vis.analyser.smoothingTimeConstant = vis.smoothingTimeConstant
 
@@ -335,7 +335,7 @@ window.onload = function() {
 
             document.body.appendChild(vis.canvas)
 
-            vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
+            vis.byteArray = new Uint8Array(vis.analyser.fftSize)
 
             // vis.render()
 
