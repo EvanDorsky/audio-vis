@@ -313,9 +313,8 @@ window.onload = function() {
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
             vis.analyser.fftSize = vis.fftSize
-            console.log('setting N')
-            console.log(vis.analyser.fftSize/2)
             setN(vis.analyser.fftSize/2);
+            
             vis.analyser.smoothingTimeConstant = vis.smoothingTimeConstant
 
             streamSource.connect(vis.analyser)

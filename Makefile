@@ -1,4 +1,4 @@
-all: index.html js/bundle.js stylesheets/style.css js/fft.js
+all: index.html js/bundle.js stylesheets/style.css js/fft.js test
 
 index.html: jade/index.jade
 	jade jade/index.jade -o .
@@ -12,8 +12,13 @@ stylesheets/style.css: stylus/style.styl
 js/fft.js: c
 	emcc c/fft.c -o js/fft.js -s EXPORTED_FUNCTIONS="['_setN', '_dft', '_fft']"
 
+js/test.js: c/test.c
+	emcc c/test.c c/fft.c -o js/test.js
+
+test: js/test.js
+
 c: c/fft.c
 	gcc c/fft.c -o js/fft.o
 
-make runc: c
+runc: c
 	./js/fft.o

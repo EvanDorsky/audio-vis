@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <complex.h>
-#include <string.h>
-#include <math.h>
-#include <limits.h>
+#include "fft.h"
 
 typedef complex double cx;
 
@@ -11,14 +6,11 @@ double _Complex __muldc3(double, double, double, double);
 double cmag(cx z);
 void cprint(cx z);
 
-void setN(int);
-
 void gen_blackman(double, double*);
 void gen_hann(double, double*);
 void cwindow(char*);
 
-char* fft(char*);
-char* dft(char*);
+cx Wa(int, int);
 cx* A(int, cx*);
 
 // http://graphics.stanford.edu/~seander/bithacks.html#BitReverseObvious
