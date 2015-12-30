@@ -1,4 +1,4 @@
-var colormap = require('colormap')
+var d3_scale = require('d3-scale')
 
 // http://oli.me.uk/2013/06/08/searching-javascript-arrays-with-a-binary-search/
 function binaryIndexOf(seEl) {
@@ -123,16 +123,16 @@ window.onload = function() {
 
     var audioCtx = new (window.AudioContext || window.webkitAudioContext)()
 
-    var jet = colormap({
-        colormap: 'electric',
-        nshades: 2048,
-        format: 'hex',
-    })
+    // var jet = colormap({
+    //     colormap: 'electric',
+    //     nshades: 2048,
+    //     format: 'hex',
+    // })
 
-    var colormapFromNorm = function(norm, offset) {
-        offset = offset || 0
-        return jet[Math.floor((offset + norm*(1-offset))*jet.length - 1)]
-    }
+    // var colormapFromNorm = function(norm, offset) {
+    //     offset = offset || 0
+    //     return jet[Math.floor((offset + norm*(1-offset))*jet.length - 1)]
+    // }
 
     var visualizer = function() {
         var vis = this
@@ -142,7 +142,7 @@ window.onload = function() {
         vis.canvasCtx = vis.canvas.getContext('2d')
 
         vis.cursor = {}
-        vis.rolling = false
+        vis.rolling = true
 
         vis.config = function(streamSource) {
             vis.analyser = audioCtx.createAnalyser()
@@ -169,7 +169,6 @@ window.onload = function() {
         }
         vis.render = function() {
             vis.analyser.getByteFrequencyData(vis.byteArray)
-            vis.bytes = vis.byteArray;
 
             if (vis.rolling) requestAnimationFrame(vis.render)
 
@@ -245,10 +244,10 @@ window.onload = function() {
             vis.canvasCtx.fillStyle = 'black'
             vis.canvasCtx.fillRect(0, 0, vis.canvas.width, vis.canvas.height)
 
-            var barwidth = vis.canvas.width/vis.bytes.length
-            for (var i = vis.bytes.length - 1; i >= 0; i--) {
+            var barwidth = vis.canvas.width/vis.byteArray.length
+            for (var i = vis.byteArray.length - 1; i >= 0; i--) {
                 var x = i*barwidth+1
-                var y = vis.bytes[i]/25.0
+                var y = vis.byteArray[i]/25.0
                 vis.canvasCtx.fillStyle = colormapFromNorm(y, 0.3)
                 vis.canvasCtx.fillRect(x, vis.canvas.height, barwidth-2, -y*vis.canvas.height)
             }
@@ -279,12 +278,12 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = new visualizer()
 
-        vis.fftSize = 1024
+        vis.fftSize = 2048
         vis.smoothingTimeConstant = 0
         vis.tempCanvas = document.createElement('canvas')
         vis.tempCtx = vis.tempCanvas.getContext('2d')
 
-        vis.logScale = false
+        vis.logScale = true
         vis.lines = 0
 
         vis.config = function(streamSource) {
@@ -295,7 +294,7 @@ window.onload = function() {
 
             streamSource.connect(vis.analyser)
 
-            vis.canvas.width = 800
+            vis.canvas.width = 400
             vis.canvas.height = 400
 
             vis.margin = 20
@@ -306,22 +305,31 @@ window.onload = function() {
             vis.tempCanvas.width = vis.gwidth
             vis.tempCanvas.height = vis.gheight
 
-            vis.scaleFactor = vis.canvas.height/Math.log2(audioCtx.sampleRate/2)
+            if (vis.logScale)
+                vis.ypixscale = d3_scale.log(2)
+                    .domain([1, vis.fftSize/2-1])
+                    .range([vis.gheight+vis.margin, vis.margin])
+            else
+                vis.ypixscale = d3_scale.linear()
+                    .domain([1, vis.fftSize/2-1])
+                    .range([vis.gheight+vis.margin, vis.margin])
+
+            vis.freqscale = d3_scale.linear()
+                    .domain([1, vis.fftSize/2-1])
+                    .range([1, audioCtx.sampleRate/2])
+
+            vis.colorscale = d3_scale.inferno()
+                .domain([0, 255])
+
+            vis.freq0 = mMap.note('A2').Hz
 
             document.body.appendChild(vis.canvas)
 
             vis.byteArray = new Uint8Array(vis.analyser.frequencyBinCount)
 
-            // vis.render()
+            vis.roll(true)
 
             return vis
-        }
-        vis.yFromFreq = function(freq) {
-            return (Math.log2(freq)*vis.scaleFactor | 0)
-        }
-        vis.freqFromY = function(y) {
-            var freq = Math.pow(2, y/vis.scaleFactor)
-            return freq
         }
         vis.setLines = function() {
             vis.lines = (vis.lines+1)%3
@@ -331,41 +339,18 @@ window.onload = function() {
         vis.draw = function() {
             var dw = 3
 
-            vis.canvasCtx.fillStyle = 'black'
+            vis.canvasCtx.fillStyle = 'gray'
 
             vis.canvasCtx.fillRect(0, 0, vis.canvas.width, vis.canvas.height)
             vis.canvasCtx.drawImage(vis.tempCanvas, 0, 0, vis.gwidth, vis.gheight, vis.margin, vis.margin, vis.gwidth, vis.gheight)
 
-            var blen = vis.bytes.length
-            var boxheight = vis.gheight/blen
-            var binwidth = audioCtx.sampleRate/vis.fftSize
-
-            var freq0 = mMap.note('A2').Hz
-            var bin0 = Math.floor(freq0/audioCtx.sampleRate*blen*2)
-
-            // var rightPadding = 50
-            // var specWidth = vis.gwidth-rightPadding
-
             var y = 0
-            var y0 = vis.yFromFreq(freq0)
-            var sfactor = vis.gheight/(vis.gheight-y0+25)
+            for (var i = 0; i < vis.byteArray.length; i++) {
+                y = vis.ypixscale(i)
+                vis.canvasCtx.fillStyle = vis.colorscale(vis.byteArray[i])
 
-            // draw spectrogram
-            for (var i = 0; i < blen; i++) {
-                if (vis.logScale) {
-                    boxheight = Math.log2((i+1)/i)*vis.scaleFactor
-                    if (boxheight == Infinity)
-                        boxheight = Math.log2(binwidth)*vis.scaleFactor
-                    y = Math.log2(i*binwidth)*vis.scaleFactor
-                    if (y < 0) y = 0
-                }
-                else
-                    y = i*boxheight
-                var norm = vis.bytes[i]/255.0
-                vis.canvasCtx.fillStyle = colormapFromNorm(norm)
-
-                vis.canvasCtx.fillRect(vis.margin+vis.gwidth-dw, vis.gheight+vis.margin-y,
-                    dw, -(boxheight+1))
+                vis.canvasCtx.fillRect(vis.margin+vis.gwidth-dw, y,
+                    dw, vis.ypixscale(i+1)-y-1)
             }
 
             if (vis.rolling) {
@@ -374,52 +359,64 @@ window.onload = function() {
                 vis.tempCtx.translate(dw, 0)
             }
 
-            // vis.canvasCtx.font = '100 18px Open Sans'
-            // vis.canvasCtx.textAlign = 'right'
-            // vis.canvasCtx.textBaseline = 'middle'
+            vis.canvasCtx.font = '100 10px Open Sans'
+            vis.canvasCtx.textAlign = 'right'
+            vis.canvasCtx.textBaseline = 'middle'
+            vis.canvasCtx.strokeStyle = 'white'
 
-            // draw y ticks
-            // if (vis.logScale) {
-            //     for (var j in As) {
-            //         vis.canvasCtx.fillStyle = 'white'
-            //         var note = As[j]
-            //         vis.canvasCtx.fillText(note.name,
-            //             vis.canvas.width-dw,
-            //             (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
-            //         vis.canvasCtx.fillRect(vis.canvas.width-rightPadding,
-            //             (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
-            //             rightPadding-30, 1)
+            var yticks = vis.ypixscale.ticks()
+            for (var i in yticks) {
+                var tick = vis.ypixscale(yticks[i])
 
-            //         if (vis.lines > 0) {
-            //             vis.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
-            //             vis.canvasCtx.fillRect(0, (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
-            //                 specWidth, 1)
-            //         }
-            //     }
-            // }
+                vis.canvasCtx.fillStyle = 'white'
+                vis.canvasCtx.beginPath()
+                vis.canvasCtx.moveTo(vis.gwidth+vis.margin, tick)
+                vis.canvasCtx.lineTo(vis.gwidth+2*vis.margin, tick)
+                vis.canvasCtx.stroke()
+                vis.canvasCtx.fillText(vis.freqscale(yticks[i])|0, vis.gwidth+2*vis.margin, tick)
+                // var note = As[j]
+                //     vis.canvas.width-dw,
+                //     (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor)
+                // vis.canvasCtx.fillRect(vis.canvas.width-rightPadding,
+                //     (vis.canvas.height-vis.yFromFreq(note.Hz))*sfactor,
+                //     rightPadding-30, 1)
 
-            // vis.canvasCtx.textAlign = 'center'
-            // vis.canvasCtx.textBaseline = 'bottom'
+                if (vis.lines > 0) {
+                    vis.canvasCtx.strokeStyle = 'rgba(255,255,255,0.5)'
+                    vis.canvasCtx.beginPath()
+                    vis.canvasCtx.moveTo(vis.margin, tick)
+                    vis.canvasCtx.lineTo(vis.gwidth+vis.margin, tick)
+                    vis.canvasCtx.stroke()
+                }
+            }
+
+            vis.canvasCtx.textAlign = 'center'
+            vis.canvasCtx.textBaseline = 'bottom'
+            vis.canvasCtx.fillStyle = 'white'
 
             // // ticks every half second, 60Hz refresh rate
-            // var tickSpacing = 30*dw
-            // // draw x ticks
-            // var tickX = specWidth
-            // var specHeight = vis.canvas.height-43
-            // var time = 0
-            // while (tickX > 0) {
-            //     vis.canvasCtx.fillStyle = 'white'
-            //     vis.canvasCtx.fillText(time, tickX, vis.canvas.height)
-            //     vis.canvasCtx.fillRect(tickX-1, specHeight, 1, 20)
+            var tickSpacing = 30*dw
+            var tickX = vis.gwidth+vis.margin
+            var time = 0
+            while (tickX > 0) {
+                vis.canvasCtx.strokeStyle = 'white'
+                vis.canvasCtx.fillText(time, tickX, vis.canvas.height)
+                vis.canvasCtx.beginPath()
+                vis.canvasCtx.moveTo(tickX, vis.gheight)
+                vis.canvasCtx.lineTo(tickX, vis.gheight+vis.margin)
+                vis.canvasCtx.stroke()
 
-            //     if (vis.lines === 2) {
-            //         vis.canvasCtx.fillStyle = 'rgba(255,255,255,0.5)'
-            //         vis.canvasCtx.fillRect(tickX-1, 0, 1, specHeight)
-            //     }
+                if (vis.lines === 2) {
+                    vis.canvasCtx.strokeStyle = 'rgba(255,255,255,0.5)'
+                    vis.canvasCtx.beginPath()
+                    vis.canvasCtx.moveTo(tickX, vis.margin)
+                    vis.canvasCtx.lineTo(tickX, vis.gheight+vis.margin)
+                    vis.canvasCtx.stroke()
+                }
 
-            //     tickX -= tickSpacing
-            //     time += 0.5
-            // }
+                tickX -= tickSpacing
+                time += 0.5
+            }
 
             // vis.canvasCtx.fillStyle = 'white'
             // // draw cursor
