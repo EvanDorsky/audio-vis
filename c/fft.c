@@ -28,12 +28,14 @@ unsigned int revbits(unsigned int v, unsigned int m) {
 
 int N;
 int m;
+cx W;
 double* g_window;
 char* xmag;
 void setN(int _N) {
     N = _N;
     m = (int)log2(N);
     xmag = (char*)malloc(N * sizeof(char));
+    W = cexp(-2*M_PI/N*I);
 
     g_window = (double*)malloc(N * sizeof(double));
     gen_blackman(0.16, g_window);
@@ -66,7 +68,6 @@ char* fft(char* x) {
     return xmag;
 }
 
-
 char* dft(char* x) {
     char* X = (char*)malloc(N * sizeof(char));
 
@@ -84,23 +85,21 @@ char* dft(char* x) {
     return X;
 }
 
+int btest;
+int b;
 cx Wa(int l, int j) {
-    cx w = cexp(2*M_PI/N*I);
     cx aW = 1;
     
-    int btest;
-    int b;
     for (int v = 0; v < l; v++) {
         btest = 1 << (m-1-v);
         b = 1 << v;
-        aW *= cpow(w, ((j&btest)>>(l-1-v))*b);
+        aW *= cpow(W, ((j&btest)>>(l-1-v))*b);
     }
     return aW;
 }
 
 cx* Al1;
 cx Wjk;
-cx W;
 int kmlbit;
 int kmlcheck;
 cx* A(int l, cx* x) {
@@ -113,11 +112,11 @@ cx* A(int l, cx* x) {
     
     kmlbit = 1 << (m-l);
     for (int jk = 0; jk < N; jk++) {
-        W = Wa(l, jk);
+        Wjk = Wa(l, jk);
         kmlcheck = ((jk&kmlbit)>>(m-l));
-        Al[jk] = Al1[jk]*(kmlcheck? W:1);
+        Al[jk] = Al1[jk]*(kmlcheck? Wjk:1);
         kmlcheck = (((jk^kmlbit)&kmlbit)>>(m-l));
-        Al[jk] += Al1[jk^kmlbit]*(kmlcheck? W:1);
+        Al[jk] += Al1[jk^kmlbit]*(kmlcheck? Wjk:1);
     }
 
     free(Al1);
