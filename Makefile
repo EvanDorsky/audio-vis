@@ -18,5 +18,8 @@ native: c/fft.c c/test.c
 main: c/main.c
 	gcc-5 -I/usr/local/include -L/usr/local/lib c/main.c -o c/main.o -lfftw3 -lm
 
+runm: main
+	./c/main.o
+
 runc: native
 	./c/test.o
