@@ -15,5 +15,8 @@ js/fft.js: c/fft.c c/test.c
 native: c/fft.c c/test.c
 	gcc c/fft.c c/test.c -o c/test.o
 
+main: c/main.c
+	gcc-5 -I/usr/local/include -L/usr/local/lib c/main.c -o c/main.o -lfftw3 -lm
+
 runc: native
 	./c/test.o
