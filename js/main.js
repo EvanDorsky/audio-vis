@@ -54,19 +54,37 @@ strings.push(mMap.note('D4'))
 strings.push(mMap.note('A4'))
 
 function keyEvent(e) {
-    if (e.keyCode === 32) // spacebar
-        window.tro.roll(!window.tro.rolling)
+    if (e.keyCode === 32) { // spacebar
+      window.tro.roll(!window.tro.rolling)
+    } else if (e.keyCode === 115) {
+      if (!window.audioRunning) {
+        window.startAudio()
+      }
+    }
 }
 
-window.addEventListener('keypress', keyEvent, false)
+window.onload = () => {
+  window.audioRunning = false
+  window.addEventListener('keypress', keyEvent, false)
+}
 
-window.onload = function() {    
+function unlockAudioContext(audioCtx) {
+  if (audioCtx.state !== 'suspended') return;
+  const b = document.body;
+  const events = ['touchstart','touchend', 'mousedown','keydown'];
+  events.forEach(e => b.addEventListener(e, unlock, false));
+  function unlock() { audioCtx.resume().then(clean); }
+  function clean() { events.forEach(e => b.removeEventListener(e, unlock)); }
+}
+
+window.startAudio = function() {    
     navigator.getUserMedia = (navigator.getUserMedia ||
                               navigator.webkitGetUserMedia ||
                               navigator.mozGetUserMedia ||
                               navigator.msGetUserMedia)
 
     var audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+    unlockAudioContext(audioCtx)
 
     var jet = colormap({
         colormap: 'electric',
@@ -176,7 +194,7 @@ window.onload = function() {
     var spectrogram = function() {
         var vis = new visualizer()
 
-        vis.p.fftSize = 4096
+        vis.p.fftSize = 4096*4
         vis.p.smoothingTimeConstant = 0
         vis.p.tempCanvas = document.createElement('canvas')
         vis.p.tempCtx = vis.p.tempCanvas.getContext('2d')
@@ -261,6 +279,7 @@ window.onload = function() {
             }
         }
 
+        window.audioRunning = true
         return vis
     }
 
